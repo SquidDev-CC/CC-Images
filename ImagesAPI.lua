@@ -1,0 +1,3 @@
+--@require Bitmap.lua
+--@require Bitmaps.lua
+--@require BinaryFile.lua
