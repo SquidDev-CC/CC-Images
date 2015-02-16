@@ -1,9 +1,7 @@
---@require Bitmap.lua
---@require Colours.lua
-
 --Monochrome bitmap
 
-BitmapMono = BitmapPixels:subClass("BitmapMono")
+local BitmapMono = BitmapPixels:subClass("BitmapMono")
+
 function BitmapMono:init(Parser)
 	self:super(BitmapPixels).init(Parser)
 
@@ -14,7 +12,7 @@ function BitmapMono:init(Parser)
 end
 
 function BitmapMono:ParsePixel()
-	
+
 	if self.Byte == nil then
 		local Byte = self.File:ReadByte()
 
@@ -46,7 +44,8 @@ function BitmapMono:FinaliseRow()
 end
 
 --4 Bit Bitmap
-BitmapFour = BitmapPixels:subClass("Bitmap4")
+local BitmapFour = BitmapPixels:subClass("Bitmap4")
+
 function BitmapFour:init(Parser)
 	self:super(BitmapPixels).init(Parser)
 
@@ -58,11 +57,12 @@ function BitmapFour:init(Parser)
 
 		self.File:ReadByte() -- Should be 0
 
-		self.Colours[I] = FindClosestColour(R, G, B)
+		self.Colours[I] = Colours(R, G, B)
 	end
 
 	self.Byte = nil
 end
+
 function BitmapFour:ParsePixel()
 	local ThisColour = nil
 
@@ -84,7 +84,8 @@ function BitmapFour:FinaliseRow()
 end
 
 --Eight bit bitmap
-BitmapEight = BitmapPixels:subClass("Bitmap8")
+local BitmapEight = BitmapPixels:subClass("Bitmap8")
+
 function BitmapEight:init(Parser)
 	self:super(BitmapPixels).init(Parser)
 
@@ -96,24 +97,34 @@ function BitmapEight:init(Parser)
 
 		self.File:ReadByte() -- Should be 0
 
-		self.Colours[I] = FindClosestColour(R, G, B)
+		self.Colours[I] = Colours(R, G, B)
 	end
 end
+
 function BitmapEight:ParsePixel()
 	return self.Colours[self.File:ReadByte()]
 end
 
 --24 bit bitmap
-BitmapTwentyFour = BitmapPixels:subClass("Bitmap24")
+local BitmapTwentyFour = BitmapPixels:subClass("Bitmap24")
+
 function BitmapTwentyFour:init(Parser)
 	self:super(BitmapPixels).init(Parser)
 
 	self.File:DiscardBytes(Parser.Starts - self.File.Offset)
 end
+
 function BitmapTwentyFour:ParsePixel()
 	local B = self.File:ReadByte()
 	local G = self.File:ReadByte()
 	local R = self.File:ReadByte()
 
-	return FindClosestColour(R, G, B)
+	return Colours(R, G, B)
 end
+
+return {
+	[1]  = BitmapMono,
+	[4]  = BitmapFour,
+	[8]  = BitmapEight,
+	[24] = BitmapTwentyFour,
+}

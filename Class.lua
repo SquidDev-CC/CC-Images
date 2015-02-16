@@ -1,4 +1,4 @@
-Object = { __name = "Object" }
+local Object = { __name = "Object" }
 
 function Object:init(...) end
 
@@ -59,7 +59,7 @@ function Object:extend(obj)
 	return obj
 end
 
-Class = Object:extend({__name = "Class"})
+local Class = Object:extend({__name = "Class"})
 function Class:new(...)
 	local instance = { __class = self }
 	self:extend(instance)
@@ -70,9 +70,12 @@ end
 function Class:getName(name)
 	return self.__name
 end
+
 function Class:subClass(name)
 	local instance = { }
 	instance.__name = name
 
 	return self:extend(instance)
 end
+
+return Class

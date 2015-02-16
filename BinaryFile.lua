@@ -1,6 +1,5 @@
---@require Class.lua
+local BinaryFile = Class:subClass("BinaryFile")
 
-BinaryFile = Class:subClass("BinaryFile")
 function BinaryFile:init(Path)
 	self.Path = Path
 	self.Offset = 0
@@ -30,3 +29,5 @@ function BinaryFile:DiscardBytes(Length)
 		self:ReadByte()
 	end
 end
+
+return BinaryFile

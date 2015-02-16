@@ -1,6 +1,6 @@
-os.unloadAPI("ImagesAPI")
-if not ImagesAPI then
-	os.loadAPI(fs.combine(fs.getDir(shell.getRunningProgram()), "ImagesAPI"))
+os.unloadAPI("Images")
+if not Images then
+	os.loadAPI(fs.combine(fs.getDir(shell.getRunningProgram()), "Images"))
 end
 
 local Args = {...}
@@ -14,8 +14,7 @@ local function ColoursEqual(A, B)
 	return (A[0] == B[0] and A[1] == B[1] and A[2] == B[2])
 end
 
-local BinFile = ImagesAPI.BinaryFile:new(Args[1])
-local Parser = ImagesAPI.BitmapParser:new(BinFile)
+local Parser = Images.parseFile(shell.resolve(Args[1]))
 
 local Characters = {}
 
@@ -42,7 +41,7 @@ local function ParseCharacter(StartX, StartY)
 		end
 
 		local Row = {}
-		
+
 		for X = StartX, MaxX, 1 do
 			local Colour = Parser.Pixels[Y][X]
 
@@ -87,7 +86,7 @@ while Y <= Parser.Height do
 	Y = Y + 1
 end
 
-local Output = fs.open(Args[2], "wb")
+local Output = fs.open(shell.resolve(Args[2]), "wb")
 Output.write(Version)
 Output.write(CharacterWidth)
 Output.write(CharacterHeight)
@@ -107,7 +106,7 @@ for Character, Pixels in pairs(Characters) do
 		local Row = Pixels[Y]
 		for X = 1, CharacterWidth do
 			X = X - Padding
-			
+
 			if Row==nil then
 				break
 			end
@@ -133,4 +132,4 @@ for Character, Pixels in pairs(Characters) do
 	end
 end
 
-Output.close()	
+Output.close()

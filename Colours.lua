@@ -1,4 +1,4 @@
-local Cols = {
+local rgbSets = {
 	[colors.white] = {240, 240, 240},
 	[colors.orange] = {242, 178, 51},
 	[colors.magenta] = {229, 127, 216},
@@ -16,16 +16,24 @@ local Cols = {
 	[colors.red] = {204, 76, 76},
 	[colors.black] = {0, 0, 0},
 }
-function FindClosestColour(R, G, B)
-	local SmallDiff = nil
-	local SmallCol = nil
-	for K, V in pairs(Cols) do
-		local diff = math.abs(V[1] - R) + math.abs(V[2] - G) + math.abs(V[3] - B)
 
-		if SmallDiff == nil or diff < SmallDiff then
-			SmallCol = K
-			SmallDiff = diff
+-- From http://stackoverflow.com/questions/4485229/rgb-to-closest-predefined-color
+local function colorDiff(r, g, b, r1, g1, b1)
+	-- return ((r - r1) * .299)^2 + ((g - g1) * .587)^2 + ((b - b1) * .114)^2
+	return (r - r1)^2 + (g - g1)^2 + (b - b1)^2
+end
+
+return function(r, g, b)
+	local smallestDifference = nil
+	local smallestColour = nil
+	for id, rgb in pairs(rgbSets) do
+		local diff = colorDiff(r, g, b, unpack(rgb))
+
+		if not smallestDifference or diff < smallestDifference then
+			smallestColour = id
+			smallestDifference = diff
 		end
 	end
-	return SmallCol
+
+	return smallestColour
 end

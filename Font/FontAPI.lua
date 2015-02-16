@@ -47,7 +47,7 @@ function LoadFont(Path)
 				if X > CharacterWidth then
 					table.insert(Pixels, Row)
 					Row = {}
-					
+
 					X = 1
 					Y = Y + 1
 
@@ -77,7 +77,7 @@ function CreateObject(Font, Width, Height, Parent)
 	end
 
 	local NewTerm = {}
-	
+
 	local Back = colours.black
 	local Front = colours.white
 
