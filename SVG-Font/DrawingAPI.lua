@@ -1,7 +1,5 @@
 --- A drawing API that takes a pixel as the first argument
 return function(pixel)
-	assert(pixel, "Pixel encoder must be specified")
-
 	local abs, floor, min = math.abs, math.floor, math.min
 
 	-- Shamelessly borrowed from cc internal source
@@ -140,8 +138,13 @@ return function(pixel)
 		end
 	end
 
+	local function setPixel(new)
+		pixel = new
+	end
+
 	return {
 		line = line,
 		bezier = bezier,
+		setPixel = setPixel,
 	}
 end

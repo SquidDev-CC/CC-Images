@@ -1,8 +1,8 @@
 local execAsync = commands.native.execAsync
-local floor = math.florr
+local floor = math.floor
 
 -- Creates a command
-return function(block, xOffset, yOffset)
+return function(block, xOffset, yOffset, zOffset)
 	local drawn = {}
 
 	local function pixel(x, y)
@@ -20,9 +20,21 @@ return function(block, xOffset, yOffset)
 			drawn[x] = {[y] = true}
 		end
 
-		local command = "setblock ~" .. (x + xOffset) .. " ~" .. (y + yOffset) .. " ~ " .. block
+		local command = "setblock ~" .. (x + xOffset) .. " ~" .. (y + yOffset) .. " ~" .. zOffset .. " " .. block
 		execAsync(command)
 	end
 
-	return pixel
+	local function clear()
+		for x, items in pairs(drawn) do
+			for y, _ in pairs(items) do
+				execAsync( "setblock ~" .. (x + xOffset) .. " ~" .. (y + yOffset) .. " ~" .. zOffset .. " minecraft:air")
+			end
+		end
+		drawn = {}
+	end
+
+	return {
+		pixel = pixel,
+		clear = clear,
+	}
 end

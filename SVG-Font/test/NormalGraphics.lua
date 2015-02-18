@@ -5,9 +5,20 @@ term.setBackgroundColor(colors.black)
 term.clear()
 
 local floor = math.floor
+
+local commands = dofile(shell.resolve("CommandGraphics.lua"))("minecraft:redstone_block", 0, 20, -20)
+local cPixel, cClear = commands.pixel, commands.clear
+
 local function pixel(x, y)
 	term.setCursorPos(floor(x), floor(y))
 	term.write(" ")
+	cPixel(x, -y) -- Invert the y coordinate
+end
+
+local function clear()
+	cClear()
+	term.setBackgroundColor(colors.black)
+	term.clear()
 end
 
 local drawing = dofile(shell.resolve("DrawingAPI.lua"))(pixel)
@@ -16,8 +27,7 @@ local drawing = dofile(shell.resolve("DrawingAPI.lua"))(pixel)
 local function waitReset()
 	os.pullEvent("char")
 
-	term.setBackgroundColor(colors.black)
-	term.clear()
+	clear()
 
 	term.setCursorPos(1, 1)
 end
@@ -32,8 +42,7 @@ local function onUpdate(callback)
 			os.queueEvent("char", ignore)
 			return
 		elseif name == "mouse_click" or name == "mouse_drag" then
-			term.setBackgroundColor(colors.black)
-			term.clear()
+			clear()
 
 			callback(x, y)
 
