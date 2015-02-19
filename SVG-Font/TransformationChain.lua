@@ -1,4 +1,4 @@
-local function transformChain(pixel)
+return function(pixel)
 	local root = pixel
 	local currentPixel = pixel
 

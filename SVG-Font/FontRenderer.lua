@@ -23,7 +23,7 @@ local yOffset = 20
 local zOffset = -20
 
 -- Load SVG and set characters
-for character, glyph in pairs(ComicSans) do
+for character, glyph in pairs(FontData) do
 	glyph.svg = SVGParser(glyph.svg)
 	glyph.character = character
 end
@@ -42,10 +42,10 @@ for i = 1, #message do
 		line = {width = 0, contents = ""}
 		lines[#lines + 1] = line
 	else
-		local glyph = ComicSans[character]
+		local glyph = FontData[character]
 		-- Support numbers in lookup table
 		if not glyph and tonumber(glyph) then
-			glyph = ComicSans[tonumber(glyph)]
+			glyph = FontData[tonumber(glyph)]
 		end
 
 		-- Still can't find glyph

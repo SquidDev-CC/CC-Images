@@ -9,8 +9,11 @@ Sources:File "CommandGraphics.lua"
 Sources:File "DrawingAPI.lua"
 	:Name "DrawingAPI"
 
-Sources:File "ComicSans.lua"
-	:Name "ComicSans"
+Sources:File "TransformationChain.lua"
+	:Name "TransformationChain"
+
+Sources:File "FontData.lua"
+	:Name "FontData"
 
 Sources:Main "FontRenderer.lua"
 	:Depends "CommandGraphics"
