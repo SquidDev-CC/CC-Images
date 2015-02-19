@@ -18,8 +18,9 @@ Sources:File "FontData.lua"
 Sources:Main "FontRenderer.lua"
 	:Depends "CommandGraphics"
 	:Depends "DrawingAPI"
+	:Depends "TransformationChain"
 
-	:Depends "ComicSans"
+	:Depends "FontData"
 	:Depends "SVGParser"
 
 Sources

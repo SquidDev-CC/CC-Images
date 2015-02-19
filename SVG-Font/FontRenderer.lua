@@ -15,12 +15,12 @@ local blockType = args[3] or "minecraft:wool 15"
 
 -- Add padding between lines
 local yPadding = 2
-local xPadding =  -10
+local xPadding =  1
 
 -- Offset for drawing things
 local xOffset = 0
-local yOffset = 20
-local zOffset = -20
+local yOffset = 30
+local zOffset = -10
 
 -- Load SVG and set characters
 for character, glyph in pairs(FontData) do
@@ -66,31 +66,28 @@ end
 -- We have the max height, create a scale factor to translate letters
 local scale = height / maxHeight
 
-local clearItems = {}
-
 -- Create the Command block API
 local commands = CommandGraphics(blockType)
 local pixel, clear = commands.setBlock, commands.clearBlocks
 
---- XOff and YOff are offsets in block scale
-local xOff, yOff
-
--- We want to scale the pixel to prevent having 2000 block high letters
-local function scalePixel(x, y)
-	pixel(x * scale + xOff + xOffset, y * scale + yOff + yOffset, zOffset)
-end
+local transform = TransformationChain(pixel)
+transform.scale(scale)
 
 -- Create a drawing API
-local drawing  = DrawingAPI(scalePixel)
+local drawing  = DrawingAPI(transform.pixel2d)
 local drawline, drawBezier = drawing.line, drawing.bezier
 
 for yLine, line in ipairs(lines) do
-	yOff = ((#lines - yLine) * (height + yPadding))
-	xOff = -(line.width * scale) / 2
-
 	print("Line " .. string.format("%q", line.contents))
+	local y = ((#lines - yLine) * (height + yPadding))
+	local x = -(line.width * scale) / 2
 
 	for _, glyph in ipairs(line) do
+		transform.push()
+		transform.translate(x, y, 0)
+		transform.rotate(-45, 30, -10)
+		transform.translate(xOffset, yOffset, zOffset)
+
 		-- Draw the node list
 		for _, node in ipairs(glyph.svg) do
 			local nodeType = node[1]
@@ -103,8 +100,10 @@ for yLine, line in ipairs(lines) do
 			end
 		end
 
+		transform.pop()
+
 		-- Move onto the next character
-		xOff = xOff + (glyph.width * scale) + xPadding
+		x = x + (glyph.width * scale) + xPadding
 	end
 end
 
