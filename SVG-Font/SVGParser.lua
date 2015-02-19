@@ -41,25 +41,37 @@ local function parsePair(string, position)
 	return x, y, position
 end
 
-local allowed = { M=true, L=true, Q = true, C = true}
+local allowed = { M=true, L=true, Q = true, C = true, Z = true}
 local function parseCommand(string, position)
 	local nextCharacter = sub(string, position, position)
 	if not allowed[nextCharacter] then
-		error("Expected (M/L/Q/C) at " .. position .. " near " .. string.format("%q", nextCharacter))
+		error("Expected (M/L/Q/C/Z) at " .. position .. " near " .. string.format("%q", nextCharacter))
 	end
 
 	return nextCharacter, position + 1
 end
 
 -- Parses an SVG string
-local function parseSVG(string)
+-- @tparam string string The SVG path to parse
+-- @tparam boolean implicitClose Close the current path on a move
+local function parseSVG(string, implicitClose)
 	local position = 1
 	local length = #string
 
 	local SVG = {}
 	local SVGNext = 1
 
+	local startX, startY = 0, 0
 	local currentX, currentY = 0, 0
+
+	local function close()
+		-- If one of the points is different draw a line
+		if currentX ~= startX or currentY ~= startY then
+			SVG[SVGNext] = {"L", {currentX, currentY, startX, startY}}
+			return startX, startY
+		end
+		return currentX, currentY
+	end
 
 	while position <= length do
 		-- Consume whitespace
@@ -75,8 +87,18 @@ local function parseSVG(string)
 
 		-- Jump drawing point (M <x> <y>)
 		if nextCharacter == "M" then
+			-- We are moving, and so should close the path
+			if implicitClose then
+				x, y = close()
+			end
+
 			-- We just update the current x/y instead of storing this as an item
 			x, y, position = parsePair(string, position)
+			startX, startY = x, y
+
+		-- Close path
+		elseif nextCharacter == "Z" then
+			x, y = close()
 
 		-- Line from current position to x, y (L <x> <y>)
 		elseif nextCharacter == "L" then
@@ -98,7 +120,7 @@ local function parseSVG(string)
 			x, y, position = parsePair(string, position)
 
 			-- Save to datalist
-			SVG[SVGNext] = {"L", {currentX, currentY, x1, y1, x2, y2, x, y}}
+			SVG[SVGNext] = {"B", {currentX, currentY, x1, y1, x2, y2, x, y}}
 			SVGNext = SVGNext + 1
 
 			-- Update positions
@@ -112,7 +134,7 @@ local function parseSVG(string)
 			x, y, position = parsePair(string, position)
 
 			-- Save to datalist
-			SVG[SVGNext] = {"Q", {currentX, currentY, x1, y1, x, y}}
+			SVG[SVGNext] = {"B", {currentX, currentY, x1, y1, x, y}}
 			SVGNext = SVGNext + 1
 
 			-- Update positions

@@ -1,13 +1,15 @@
+local abs, min = math.abs, math.min
+
 --- A drawing API that takes a pixel as the first argument
 return function(pixel)
-	local abs, floor, min = math.abs, math.floor, math.min
+	assert(pixel, "Pixel function must be specified")
 
 	-- Shamelessly borrowed from cc internal source
 	local function line(startX, startY, endX, endY)
-		startX = floor(startX)
-		startY = floor(startY)
-		endX = floor(endX)
-		endY = floor(endY)
+		startX = startX
+		startY = startY
+		endX = endX
+		endY = endY
 
 		-- Ignore tiny lines
 		if startX == endX and startY == endY then
@@ -33,7 +35,7 @@ return function(pixel)
 			local y = minY
 			local dy = yDiff / xDiff
 			for x = minX, maxX do
-				pixel(x, floor(y + 0.5 ))
+				pixel(x, y + 0.5)
 				y = y + dy
 			end
 		else
@@ -41,12 +43,12 @@ return function(pixel)
 			local dx = xDiff / yDiff
 			if maxY >= minY then
 				for y = minY, maxY do
-					pixel(floor(x + 0.5), y)
+					pixel(x + 0.5, y)
 					x = x + dx
 				end
 			else
 				for y = minY, maxY, -1 do
-					pixel(floor(x + 0.5 ), y)
+					pixel(x + 0.5, y)
 					x = x - dx
 				end
 			end
@@ -121,15 +123,15 @@ return function(pixel)
 					t = 1
 				end
 
-				local jcount = 1
+				local index = 1
 				local x, y = 0, 0
 
 				for i = 0, numberPoints do
 					-- For each point do things
 					local basis = bernstein(numberPoints, i, t)
-					x = x + (basis * points[jcount])
-					y = y + (basis * points[jcount + 1])
-					jcount = jcount + 2
+					x = x + (basis * points[index])
+					y = y + (basis * points[index + 1])
+					index = index + 2
 				end
 
 				pixel(x, y)
@@ -138,13 +140,8 @@ return function(pixel)
 		end
 	end
 
-	local function setPixel(new)
-		pixel = new
-	end
-
 	return {
 		line = line,
 		bezier = bezier,
-		setPixel = setPixel,
 	}
 end

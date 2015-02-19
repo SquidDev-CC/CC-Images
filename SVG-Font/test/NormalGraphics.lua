@@ -1,22 +1,20 @@
+--- Testing script to play around with some curves and lines and what not.
+
+local term = term
+local floor = math.floor
+
 local original = term.current()
 
 term.redirect(term.native())
 term.setBackgroundColor(colors.black)
 term.clear()
 
-local floor = math.floor
-
-local commands = dofile(shell.resolve("CommandGraphics.lua"))("minecraft:redstone_block", 0, 20, -20)
-local cPixel, cClear = commands.pixel, commands.clear
-
 local function pixel(x, y)
 	term.setCursorPos(floor(x), floor(y))
 	term.write(" ")
-	cPixel(x, -y) -- Invert the y coordinate
 end
 
 local function clear()
-	cClear()
 	term.setBackgroundColor(colors.black)
 	term.clear()
 end

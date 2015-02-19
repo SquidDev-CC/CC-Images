@@ -15,7 +15,7 @@ local blockType = args[3] or "minecraft:wool 15"
 
 -- Add padding between lines
 local yPadding = 2
-local xPadding =  1
+local xPadding =  -10
 
 -- Offset for drawing things
 local xOffset = 0
@@ -68,29 +68,29 @@ local scale = height / maxHeight
 
 local clearItems = {}
 
+-- Create the Command block API
+local commands = CommandGraphics(blockType)
+local pixel, clear = commands.setBlock, commands.clearBlocks
+
+--- XOff and YOff are offsets in block scale
+local xOff, yOff
+
+-- We want to scale the pixel to prevent having 2000 block high letters
+local function scalePixel(x, y)
+	pixel(x * scale + xOff + xOffset, y * scale + yOff + yOffset, zOffset)
+end
+
 -- Create a drawing API
-local drawing  = DrawingAPI()
-local drawline, drawBezier, drawSetPixel = drawing.line, drawing.bezier, drawing.setPixel
+local drawing  = DrawingAPI(scalePixel)
+local drawline, drawBezier = drawing.line, drawing.bezier
 
 for yLine, line in ipairs(lines) do
-	local y = ((#lines - yLine) * (height + yPadding))
-	local x = -(line.width * scale) / 2
+	yOff = ((#lines - yLine) * (height + yPadding))
+	xOff = -(line.width * scale) / 2
 
 	print("Line " .. string.format("%q", line.contents))
 
 	for _, glyph in ipairs(line) do
-		-- Construct a new CommandGraphics instance for drawing this one letter
-		local commands = CommandGraphics(blockType, x + xOffset, y + yOffset, zOffset)
-		local pixel, clear = commands.pixel, commands.clear
-
-		-- We want to scale the pixel to prevent having 2000 block high letters
-		local function scalePixel(x, y)
-			pixel(x * scale, y * scale)
-		end
-
-		-- Create a new DrawingAPI
-		drawSetPixel(scalePixel)
-
 		-- Draw the node list
 		for _, node in ipairs(glyph.svg) do
 			local nodeType = node[1]
@@ -104,23 +104,13 @@ for yLine, line in ipairs(lines) do
 		end
 
 		-- Move onto the next character
-		x = x + (glyph.width * scale) + xPadding
-
-		-- Add a handler to clear the character
-		clearItems[#clearItems + 1] = clear
+		xOff = xOff + (glyph.width * scale) + xPadding
 	end
 end
 
 print("Press any key to clear")
 os.pullEvent("char")
-
-local len = #clearItems
-if len > 30 then
-	print("Clearing " .. len .. " items, this may take some time")
-end
-
 -- We cache which blocks we placed so we don't place it more
 -- than once, so it is trivial to clean up again.
-for _, clear in ipairs(clearItems) do
-	clear()
-end
+clear()
+
