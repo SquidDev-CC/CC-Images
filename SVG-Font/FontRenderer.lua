@@ -1,17 +1,20 @@
 local args = {...}
 
-local ipairs, unpack = ipairs, unpack
+local font = FontHelpers.loadFont(FontData)
+local message, height, blockType
 
---- Read with a prompt in front
-local function readPrompt(prompt)
-	write(prompt .. "> ")
-	return read()
+do
+	--- Read with a prompt in front
+	local function readPrompt(prompt)
+		write(prompt .. "> ")
+		return read()
+	end
+
+	-- Load some arguments. Allows "\n" in message as a literal "\n"
+	message = (args[1] or readPrompt("Message")):gsub("\\n", "\n")
+	height = assert(tonumber(args[2] or readPrompt("Max height")), "Invalid number")
+	blockType = args[3] or "minecraft:wool 15"
 end
-
--- Load some arguments. Allows "\n" in message as a literal "\n"
-local message = (args[1] or readPrompt("Message")):gsub("\\n", "\n")
-local height = assert(tonumber(args[2] or readPrompt("Max height")), "Invalid number")
-local blockType = args[3] or "minecraft:wool 15"
 
 -- Add padding between lines
 local yPadding = 2
@@ -22,46 +25,7 @@ local xOffset = 0
 local yOffset = 30
 local zOffset = -10
 
--- Load SVG and set characters
-for character, glyph in pairs(FontData) do
-	glyph.svg = SVGParser(glyph.svg)
-	glyph.character = character
-end
-
-local maxHeight = 0 -- Max height of the text
-
-local line = {width = 0, contents = ""}
-local lines = {line} -- Number of lines to write
-local maxWidth = 0
-
-for i = 1, #message do
-	local character = message:sub(i, i)
-
-	-- Start a new line if \n
-	if character == "\n" then
-		line = {width = 0, contents = ""}
-		lines[#lines + 1] = line
-	else
-		local glyph = FontData[character]
-		-- Support numbers in lookup table
-		if not glyph and tonumber(glyph) then
-			glyph = FontData[tonumber(glyph)]
-		end
-
-		-- Still can't find glyph
-		if not glyph then
-			error("Unexpected character " .. string.format("%q", character))
-		end
-
-		-- Find max glyph height
-		maxHeight = math.max(maxHeight, glyph.height)
-		line[#line + 1] = glyph
-
-		-- Calculate some line data
-		line.width = line.width + glyph.width
-		line.contents = line.contents .. character
-	end
-end
+local lines = FontHelpers.createLines(font, message)
 
 -- We have the max height, create a scale factor to translate letters
 local scale = height / maxHeight
@@ -75,7 +39,7 @@ transform.scale(scale)
 
 -- Create a drawing API
 local drawing  = DrawingAPI(transform.pixel2d)
-local drawline, drawBezier = drawing.line, drawing.bezier
+local drawLine, drawBezier = drawing.line, drawing.bezier
 
 for yLine, line in ipairs(lines) do
 	print("Line " .. string.format("%q", line.contents))
@@ -94,7 +58,7 @@ for yLine, line in ipairs(lines) do
 			local nodeArgs = node[2]
 
 			if nodeType == "L" then -- Lines
-				drawline(unpack(nodeArgs))
+				drawLine(unpack(nodeArgs))
 			else -- If C or Q then bezier line
 				drawBezier(nodeArgs)
 			end
@@ -104,6 +68,9 @@ for yLine, line in ipairs(lines) do
 
 		-- Move onto the next character
 		x = x + (glyph.width * scale) + xPadding
+
+		os.queueEvent("test")
+		coroutine.yield("test")
 	end
 end
 

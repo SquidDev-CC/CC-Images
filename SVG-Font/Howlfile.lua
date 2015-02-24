@@ -15,6 +15,10 @@ Sources:File "TransformationChain.lua"
 Sources:File "FontData.lua"
 	:Name "FontData"
 
+Sources:File "FontHelpers.lua"
+	:Name "FontHelpers"
+	:Depends "SVGParser"
+
 Sources:Main "FontRenderer.lua"
 	:Depends "CommandGraphics"
 	:Depends "DrawingAPI"

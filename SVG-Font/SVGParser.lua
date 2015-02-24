@@ -55,6 +55,9 @@ end
 -- @tparam string string The SVG path to parse
 -- @tparam boolean implicitClose Close the current path on a move
 local function parseSVG(string, implicitClose)
+	if implicitClose == nil then
+		implicitClose = true
+	end
 	local position = 1
 	local length = #string
 

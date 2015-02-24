@@ -19,14 +19,14 @@ local rgbSets = {
 
 -- From http://stackoverflow.com/questions/4485229/rgb-to-closest-predefined-color
 local function colorDiff(r, g, b, r1, g1, b1)
-	-- return ((r - r1) * .299)^2 + ((g - g1) * .587)^2 + ((b - b1) * .114)^2
-	return (r - r1)^2 + (g - g1)^2 + (b - b1)^2
+	return ((r - r1) * .299)^2 + ((g - g1) * .587)^2 + ((b - b1) * .114)^2
+	-- return (r - r1)^2 + (g - g1)^2 + (b - b1)^2
 end
 
-return function(r, g, b)
+local function findClosestColor(colors, r, g, b)
 	local smallestDifference = nil
 	local smallestColour = nil
-	for id, rgb in pairs(rgbSets) do
+	for id, rgb in pairs(colors) do
 		local diff = colorDiff(r, g, b, unpack(rgb))
 
 		if not smallestDifference or diff < smallestDifference then
@@ -37,3 +37,8 @@ return function(r, g, b)
 
 	return smallestColour
 end
+
+return {
+	findClosestColor = findClosestColor,
+	colors = rgbSets
+}
