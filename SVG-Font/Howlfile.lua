@@ -23,9 +23,9 @@ Sources:Main "FontRenderer.lua"
 	:Depends "CommandGraphics"
 	:Depends "DrawingAPI"
 	:Depends "TransformationChain"
+	:Depends "FontHelpers"
 
 	:Depends "FontData"
-	:Depends "SVGParser"
 
 Sources
 	:Export()

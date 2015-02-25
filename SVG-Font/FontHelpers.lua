@@ -35,8 +35,8 @@ local function createLine(font, text)
 	local height = 0
 	local contents = ""
 
-	for i = 1, #message do
-		local character = message:sub(i, i)
+	for i = 1, #text do
+		local character = text:sub(i, i)
 
 		local glyph = font[character]
 
@@ -67,10 +67,23 @@ end
 
 local function createLines(font, text)
 	local lines = {}
+	local maxHeight = 0
+	local maxWidth = 0
 
 	text:gsub("([^\n]*)\n?", function(c)
-		lines[#lines + 1] = createLine(font, c)
+		local line = createLine(font, c)
+		lines[#lines + 1] = line
+		maxHeight = max(maxHeight, line.height)
+		maxWidth = max(maxWidth, line.width)
 	end)
+
+	-- Remove last line
+	if lines[#lines].contents == "" then
+		lines[#lines] = nil
+	end
+
+	lines.maxHeight = maxHeight
+	lines.maxWidth = maxWidth
 
 	return lines
 end
@@ -80,4 +93,5 @@ return {
 	drawSVG = drawSVG,
 	loadFont = loadFont,
 	createLine = createLine,
+	createLines = createLines,
 }

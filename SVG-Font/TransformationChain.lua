@@ -40,17 +40,17 @@ return function(pixel)
 	end
 
 	--- Passes the values through the chain
-	local function pixel(x, y, z)
+	local function pixel(x, y, z, ...)
 		for _, tranform in ipairs(chain) do
 			x, y, z = tranform(x, y, z)
 		end
 
-		return root(x, y, z)
+		return root(x, y, z, ...)
 	end
 
 	--- Passes the values through the chain
-	local function pixel2d(x, y)
-		return pixel(x, y, 0)
+	local function pixel2d(x, y, ...)
+		return pixel(x, y, 0, ...)
 	end
 
 	--[[

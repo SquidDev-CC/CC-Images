@@ -46,7 +46,7 @@ return function(block)
 				end
 			end
 		end
-		drawn = {}
+		drawn = setmetatable({}, autoGetParent)
 	end
 
 	local function setBlockType(b)

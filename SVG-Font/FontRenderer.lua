@@ -11,7 +11,7 @@ do
 	end
 
 	-- Load some arguments. Allows "\n" in message as a literal "\n"
-	message = (args[1] or readPrompt("Message")):gsub("\\n", "\n")
+	message = (args[1] or readPrompt("Message")):gsub("\\n", "\n") .. "\n"
 	height = assert(tonumber(args[2] or readPrompt("Max height")), "Invalid number")
 	blockType = args[3] or "minecraft:wool 15"
 end
@@ -28,7 +28,7 @@ local zOffset = -10
 local lines = FontHelpers.createLines(font, message)
 
 -- We have the max height, create a scale factor to translate letters
-local scale = height / maxHeight
+local scale = height / lines.maxHeight
 
 -- Create the Command block API
 local commands = CommandGraphics(blockType)
@@ -44,6 +44,8 @@ local drawLine, drawBezier = drawing.line, drawing.bezier
 for yLine, line in ipairs(lines) do
 	print("Line " .. string.format("%q", line.contents))
 	local y = ((#lines - yLine) * (height + yPadding))
+
+	-- We will centre align the drawing
 	local x = -(line.width * scale) / 2
 
 	for _, glyph in ipairs(line) do
@@ -60,7 +62,7 @@ for yLine, line in ipairs(lines) do
 			if nodeType == "L" then -- Lines
 				drawLine(unpack(nodeArgs))
 			else -- If C or Q then bezier line
-				drawBezier(nodeArgs)
+				drawBezier(nodeArgs, height * 10)
 			end
 		end
 
@@ -75,8 +77,12 @@ for yLine, line in ipairs(lines) do
 end
 
 print("Press any key to clear")
-os.pullEvent("char")
+os.pullEvent("key")
 -- We cache which blocks we placed so we don't place it more
 -- than once, so it is trivial to clean up again.
 clear()
 
+
+-- Gobble char events
+os.queueEvent("test")
+coroutine.yield("test")
