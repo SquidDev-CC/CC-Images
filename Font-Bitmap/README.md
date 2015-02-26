@@ -1,10 +1,8 @@
-Font API
-========
+# Font API
 
 This API provides fonts for Computer Craft.
 
-Example
--------
+## Example
 You first need to create a font file. This should be a Bitmap (.bmp). I like to use [this](http://xbox.create.msdn.com/en-US/education/catalog/utility/bitmap_font_maker) but it doens't matter how it looks like as long as the individual glyphs are on a black background.
 
 The bitmap should be in 16 colour format (bit depth of 4). You can then run `BitmapToFont.lua MyFont.bmp MyFont.ftf`.
@@ -21,8 +19,7 @@ term.redirect(Obj)
 print("We all love Comic Sans")
 ```
 
-The 'Fake Type Font' Format
----------------------------
+## The 'Fake Type Font' Format
 The `.ftf` extension follows the following format:
 
 

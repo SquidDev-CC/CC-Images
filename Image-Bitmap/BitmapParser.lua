@@ -46,7 +46,7 @@ function BitmapParser:init(file)
 	pixelParser:new(self):parse()
 end
 
-local closest, strSets = Colours.findClosestColor, Colours.strSets
+local closest, strSets = Colors.findClosestColor, Colors.strSets
 function BitmapParser:save(handle, save)
 	if type(handle) == "string" then
 		handle = fs.open(handle, "w")

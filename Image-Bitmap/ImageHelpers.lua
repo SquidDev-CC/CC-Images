@@ -6,16 +6,17 @@ function parseFile(path)
 end
 
 
-local closest, termSets = Colours.findClosestColor, Colours.termSets
-function createTermPixel(term)
+local closest, termSets = Colors.findClosestColor, Colors.termSets
+function createTermPixel(redirect)
+	redirect = redirect or term
 	return function(x, y, color)
-		term.setCursorPos(x, y)
-		term.setBackgroundColour(findClosestColor(termSets, unpack(color)))
-		term.write(" ")
+		redirect.setCursorPos(x, y)
+		redirect.setBackgroundColour(findClosestColor(termSets, unpack(color)))
+		redirect.write(" ")
 	end
 end
 
-termPixel = createTermPixel(term)
+termPixel = createTermPixel()
 
 function drawImage(parser, pixel)
 	pixel = pixel or termPixel

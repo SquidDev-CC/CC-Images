@@ -1,44 +1,55 @@
 Options:Default "trace"
 
-Sources:File "BinaryFile.lua"
-	:Name "BinaryFile"
-	:Depends "Class"
+do -- Global files
+	Sources:File "Utils/Class.lua"
+		:Name "Class"
+		:Export(false)
+	Sources:File "Utils/Colors.lua"
+		:Name "Colors"
+	Sources:File "Utils/DrawingAPI.lua"
+		:Name "DrawingAPI"
+end
 
-Sources:File "BitmapParser.lua"
-	:Name "BitmapParser"
-	:Depends "Class"
-	:Depends "BitmapDepths"
+do -- Image-Bitmap
+	Sources:File "Image-Bitmap/BinaryFile.lua"
+		:Name "BinaryFile"
+		:Depends "Class"
 
-Sources:File "BitmapPixels.lua"
-	:Name "BitmapPixels"
-	:Depends "Class"
+	Sources:File "Image-Bitmap/BitmapParser.lua"
+		:Name "BitmapParser"
+		:Depends "Class"
+		:Depends "BitmapDepths"
 
-Sources:File "BitmapDepths.lua"
-	:Name "BitmapDepths"
-	:Depends "BitmapPixels"
-	:Depends "Colours"
+	Sources:File "Image-Bitmap/BitmapPixels.lua"
+		:Name "BitmapPixels"
+		:Depends "Class"
+		:Depends "Colors"
 
-Sources:File "Class.lua"
-	:Name "Class"
-Sources:File "Colours.lua"
-	:Name "Colours"
+	Sources:File "Image-Bitmap/BitmapDepths.lua"
+		:Name "BitmapDepths"
+		:Depends "BitmapPixels"
 
-Sources:Main "ImagesAPI.lua"
-	:Depends "BinaryFile"
-	:Depends "BitmapParser"
+	Sources:File "Image-Bitmap/ImageHelpers.lua"
+		:Name "ImageHelpers"
+		:Depends "BinaryFile"
+		:Depends "BitmapParser"
+		:Depends "Colors"
+end
 
-Sources
-	:Export()
+do -- Font-SVG
+	Sources:File "Font-SVG/SVGParser.lua"
+		:Name "SVGParser"
+	Sources:File "Font-SVG/FontHelpers.lua"
+		:Name "FontHelpers"
+		:Depends "SVGParser"
+end
+
+Sources:Export()
 
 Tasks:Clean("clean", "build")
-Tasks:Combine("combine", Sources, "build/Images.lua", {"clean"})
+Tasks:Combine("combine", Sources, "build/Graphics.lua", {"clean"})
 	:Verify()
 
-Tasks:Minify("minify", "build/Images.lua", "build/Images.min.lua")
-	:Description("Produces a minified version of the code")
+Tasks:Minify("minify", "build/Graphics.lua", "build/Graphics.min.lua")
 
-Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua", {"clean"})
-	:Traceback()
-
-Tasks:Task "build"{"minify", "boot"}
-	:Description "Minify and bootstrap"
+Tasks:Default "minify"

@@ -39,7 +39,6 @@ local strSets = {
 }
 
 
--- From http://stackoverflow.com/questions/4485229/rgb-to-closest-predefined-color
 local function colorDiff(r, g, b, r1, g1, b1)
 	return ((r - r1) * .299)^2 + ((g - g1) * .587)^2 + ((b - b1) * .114)^2
 	-- return (r - r1)^2 + (g - g1)^2 + (b - b1)^2

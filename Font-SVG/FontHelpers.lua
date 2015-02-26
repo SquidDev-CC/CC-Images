@@ -3,7 +3,8 @@ local max, tonumber, setmetatable, unpack, ipairs, pairs = math.max, tonumber, s
 --- Draw a svg path
 -- @tparam table svg List of svg nodes to use
 -- @tparam DrawingAPI drawing An instance of the drawing API object
-local function drawSVG(svg, drawing)
+-- @tparam int resolution Resolution of the bezier curves
+local function drawSVG(svg, drawing, resolution)
 	local drawLine, drawBezier = drawing.line, drawing.bezier
 
 	for _, node in ipairs(svg) do
@@ -13,7 +14,7 @@ local function drawSVG(svg, drawing)
 		if nodeType == "L" then -- Lines
 			drawLine(unpack(nodeArgs))
 		else -- If B then bezier curve
-			drawBezier(nodeArgs)
+			drawBezier(nodeArgs, resolution)
 		end
 	end
 end

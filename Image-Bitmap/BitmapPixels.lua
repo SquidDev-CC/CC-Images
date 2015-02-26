@@ -23,11 +23,11 @@ function BitmapPixels:parse()
 		self:finaliseRow()
 
 		local rowWidth = self.file.offset - startOffset
-		self.file:DiscardBytes(4 - (rowWidth % 4))
+		self.file:discardBytes(4 - (rowWidth % 4))
 
 	end
 
-	self.file:Close()
+	self.file:close()
 end
 
 function BitmapPixels:parsePixel() return 1 end

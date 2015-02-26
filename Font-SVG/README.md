@@ -1,7 +1,8 @@
-# SVG Font renderer
-Renders SVG fonts through the Command Block API
+# Font-SVG
+Parses of SVG files and contains helpers for SVG fonts. This is composed of several files:
+
+ - `FontHelpers.lua`: Contains methods for loading and drawing SVG fonts
+ - `SVGParser.lua`: Parses a SVG path.
 
 ## Useful links
  - [MDN on Paths](https://developer.mozilla.org/en/docs/Web/SVG/Tutorial/Paths)
- - [Xenthera's Graphics API](http://www.computercraft.info/forums2/index.php?/topic/20827-computercraft-graphics-library/)
- - [Code Project article on Bezier curves](http://www.codeproject.com/Articles/25237/Bezier-Curves-Made-Simple)
