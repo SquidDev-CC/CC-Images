@@ -24,7 +24,6 @@ function BitmapPixels:parse()
 
 		local rowWidth = self.file.offset - startOffset
 		self.file:discardBytes(4 - (rowWidth % 4))
-
 	end
 
 	self.file:close()

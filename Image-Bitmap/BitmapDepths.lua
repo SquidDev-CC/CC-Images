@@ -4,13 +4,13 @@ local black, white = {0, 0, 0}, {255, 255, 255}
 
 local BitmapMono = BitmapPixels:subClass("BitmapMono")
 
-function BitmapMono:init(Parser)
-	self:super(BitmapPixels).init(Parser)
+function BitmapMono:init(parser)
+	self:super(BitmapPixels).init(parser)
 
 	self.byte = nil
 	self.bitPosition = 0
 
-	self.file:discardBytes(Parser.Starts - self.file.Offset)
+	self.file:discardBytes(parser.Starts - self.file.Offset)
 end
 
 function BitmapMono:parsePixel()
@@ -48,8 +48,8 @@ end
 --4 Bit Bitmap
 local BitmapFour = BitmapPixels:subClass("Bitmap4")
 
-function BitmapFour:init(Parser)
-	self:super(BitmapPixels).init(Parser)
+function BitmapFour:init(parser)
+	self:super(BitmapPixels).init(parser)
 
 	self.colors = {}
 	for I = 0, 15, 1 do
@@ -88,8 +88,8 @@ end
 --Eight bit bitmap
 local BitmapEight = BitmapPixels:subClass("Bitmap8")
 
-function BitmapEight:init(Parser)
-	self:super(BitmapPixels).init(Parser)
+function BitmapEight:init(parser)
+	self:super(BitmapPixels).init(parser)
 
 	self.colors = {}
 	for I = 0, 255, 1 do
@@ -110,10 +110,10 @@ end
 --24 bit bitmap
 local BitmapTwentyFour = BitmapPixels:subClass("Bitmap24")
 
-function BitmapTwentyFour:init(Parser)
-	self:super(BitmapPixels).init(Parser)
+function BitmapTwentyFour:init(parser)
+	self:super(BitmapPixels).init(parser)
 
-	self.file:discardBytes(Parser.Starts - self.file.Offset)
+	self.file:discardBytes(parser.starts - self.file.offset)
 end
 
 function BitmapTwentyFour:parsePixel()

@@ -23,7 +23,8 @@ term.clear()
 term.setCursorPos(1, 1)
 Graphics.ImageHelpers.drawImage(parser)
 
-term.setCursorPos(1, 1)
+local w, h = term.getSize()
+term.setCursorPos(1, h - 1)
 term.setBackgroundColor(colors.black)
 term.setTextColor(colors.white)
 
@@ -32,7 +33,6 @@ os.pullEvent("key")
 
 term.setCursorPos(1, 1)
 term.clear()
-
 
 -- Gobble char events
 os.queueEvent("ignore") coroutine.yield("ignore")
