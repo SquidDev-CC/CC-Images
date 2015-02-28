@@ -24,10 +24,11 @@ term.setCursorPos(1, 1)
 Graphics.ImageHelpers.drawImage(parser)
 
 local w, h = term.getSize()
-term.setCursorPos(1, h - 1)
+term.setCursorPos(1, h - 2)
 term.setBackgroundColor(colors.black)
 term.setTextColor(colors.white)
 
+print("Drawing a " .. parser.width .. "x" .. parser.height .. " image at depth " .. parser.colourDepth)
 print("Press any key to clear")
 os.pullEvent("key")
 

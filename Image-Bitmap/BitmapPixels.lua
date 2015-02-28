@@ -22,8 +22,10 @@ function BitmapPixels:parse()
 
 		self:finaliseRow()
 
-		local rowWidth = self.file.offset - startOffset
-		self.file:discardBytes(4 - (rowWidth % 4))
+		local pixelsRemaning = (self.file.offset - startOffset) % 4
+		if pixelsRemaning > 0 then
+			self.file:discardBytes(4 - pixelsRemaning)
+		end
 	end
 
 	self.file:close()
