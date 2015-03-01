@@ -1,5 +1,5 @@
 --[[
-	Renders an image to the screen
+	Renders an image to the world
 ]]
 
 local function resolve(path)
