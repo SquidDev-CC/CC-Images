@@ -40,10 +40,11 @@ local indexes = {
 	-- {1,3,4},
 	-- {7,6,8},
 	-- {8,6,5},
+
 	{3,7,4}, -- Left
-	{4,7,8},
-	{5,6,2},
-	{2,1,5},
+	-- {4,7,8},
+	-- {5,6,2},
+	-- {2,1,5},
 
 	-- {5,1,4}, -- Top
 	-- {4,8,5},
@@ -61,24 +62,6 @@ local mulpMat, mulpVer = matrix.createMultiply(4, 4, 4, 4), matrix.createMultipl
 
 local projection = transform.perspective(math.pi / 2, 1, 0.1, 6.0)
 -- projection = transform.orthographic(-1, 1, -1, 1, -1, 1)
--- projection = {
--- 	rows = 4, cols = 4,
--- 	25,  0,  0, 0,
--- 	0,  25,  0, 0,
--- 	0,   0,  1, -1,
--- 	0,   0, -0.0200002, 0
--- }
-
-local fd = 3
-local function project(vertex)
-	local scale = (fd + vertex[3])
-	if scale == 0 then scale = 1 end
-	return {
-		vertex[1] * fd / scale,
-		vertex[2] * fd / scale,
-		vertex[3], vertex[4],
-	}
-end
 
 local function compose(...)
 	local result, items = ..., {select(2, ...)}
@@ -97,14 +80,9 @@ local function normalise(coord)
 	return coord
 end
 
-local rotX, rotY = 0, 0
-local x, y, z = 0, 0, 17
-
-local g, h
-
 local function draw(g, v, group)
 	local a, b, c = v[group[1]], v[group[2]], v[group[3]]
-	if false then
+	if true then
 		g.triangleBlended(
 			a[1], a[2], a[3],
 			b[1], b[2], b[3],
@@ -141,7 +119,14 @@ local function drawLine(g, v, group)
 	)
 end
 matrix.print(projection)
-local function refershMatrix()
+
+
+local rotX, rotY = 0, 0
+local x, y, z = 0, 0, 8
+
+local g
+
+local function refreshMatrix()
 	local view = compose(unpack {
 		transform.scale(1/20, 1/20, 1/20),
 		transform.translate(-x, -y, -z),
@@ -152,46 +137,31 @@ local function refershMatrix()
 	-- matrix.print(mvp)
 	-- print(x, y, z)
 
-	g, h = graphics(dispWidth, dispHeight), graphics(dispWidth, dispHeight)
-	local r, p = {}, {}
+	g = graphics(dispWidth, dispHeight)
+	local p = {}
 	print("###########################")
 	for k, v in pairs(verticies) do
 		local coord = mulpVer(mvp, v)
 		if coord[4] == 0 then coord[4] = 1 print("SOMETHING IS 0", coord[3]) end
 		coord[1] = coord[1] / coord[4]
 		coord[2] = coord[2] / coord[4]
-		coord[4] = 1
 		p[k] = coord
-		r[k] = project(mulpVer(view, v))
-
-		-- matrix.print(v, 1, 4)
-		-- -- matrix.print(mulpVer(view, v), 1, 4)
-		-- -- matrix.print(mulpVer(mvp, v), 1, 4)
-		-- matrix.print(coord, 1, 4)
-		-- matrix.print(r[k], 1, 4)
-		-- print("========")
 	end
 
 	for k, _ in pairs(verticies) do
 		p[k] = normalise(p[k])
-		r[k] = normalise(r[k])
 	end
 
-	-- print(require'ml'.tstring(r))
-	-- print(require'ml'.tstring(p))
-
 	for _, group in pairs(indexes) do
-		draw(g, r, group)
-		draw(h, p, group)
+		draw(g, p, group)
 	end
 
 	for _, group in pairs(lines) do
-		drawLine(g, r, group)
-		drawLine(h, p, group)
+		drawLine(g, p, group)
 	end
 end
 
-refershMatrix()
+refreshMatrix()
 function love.keypressed(key)
 	if key == "a" then
 		rotY = (rotY + 0.1) % (2 * math.pi)
@@ -218,11 +188,10 @@ function love.keypressed(key)
 		rotX = 0
 	end
 
-	refershMatrix(other)
+	refreshMatrix()
 end
 
 function love.draw()
 	g.love(love)
-	h.love(love, 0, 300)
 end
 

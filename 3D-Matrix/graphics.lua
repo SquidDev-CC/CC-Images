@@ -149,6 +149,11 @@ return function(width, height, defColour)
 
 	local triangleBlended, triangle
 	do
+		local function outline(x1, y1, z1, x2, y2, z2, x3, y3, z3, colour)
+			line(x1, y1, z1, x2, y2, z2, colour)
+			line(x1, y1, z1, x3, y3, z3, colour)
+			line(x2, y2, z2, x3, y3, z3, colour)
+		end
 		-- Fills a triangle whose bottom side is perfectly horizontal.
 		-- Precondition is that v2 and v3 perform the flat side and that v1.y < v2.y, v3.y.
 		local function fillBottomTriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, colour1, colour2, colour3)
@@ -180,19 +185,21 @@ return function(width, height, defColour)
 			end
 
 			for y = y1, y2 do
-				for x = ceil(xStart), xEnd do
-					local t = (x - xStart) / (xEnd - xStart)
-					local tInv = 1 - t
+				if y >= 1 and y <= height then
+					for x = ceil(xStart), xEnd do
+						local t = (x - xStart) / (xEnd - xStart)
+						local tInv = 1 - t
 
-					pixel(
-						x, y, tInv * zStart + t * zEnd,
-						{
-							tInv * rStart + t * rEnd,
-							tInv * gStart + t * gEnd,
-							tInv * bStart + t * bEnd,
-							tInv * aStart + t * aEnd,
-						}
-					)
+						pixel(
+							x, y, tInv * zStart + t * zEnd,
+							{
+								tInv * rStart + t * rEnd,
+								tInv * gStart + t * gEnd,
+								tInv * bStart + t * bEnd,
+								tInv * aStart + t * aEnd,
+							}
+						)
+					end
 				end
 
 				xStart, xEnd = xStart + dx2, xEnd + dx3
@@ -242,19 +249,21 @@ return function(width, height, defColour)
 				bStart, bEnd = bStart - db1, bEnd - db2
 				aStart, aEnd = aStart - da1, aEnd - da2
 
-				for x = ceil(xStart), xEnd do
-					local t = (x - xStart) / (xEnd - xStart)
-					local tInv = 1 - t
+				if y >= 1 and y <= height then
+					for x = ceil(xStart), xEnd do
+						local t = (x - xStart) / (xEnd - xStart)
+						local tInv = 1 - t
 
-					pixel(
-						x, y, tInv * zStart + t * zEnd,
-						{
-							tInv * rStart + t * rEnd,
-							tInv * gStart + t * gEnd,
-							tInv * bStart + t * bEnd,
-							tInv * aStart + t * aEnd,
-						}
-					)
+						pixel(
+							x, y, tInv * zStart + t * zEnd,
+							{
+								tInv * rStart + t * rEnd,
+								tInv * gStart + t * gEnd,
+								tInv * bStart + t * bEnd,
+								tInv * aStart + t * aEnd,
+							}
+						)
+					end
 				end
 			end
 		end
@@ -299,14 +308,26 @@ return function(width, height, defColour)
 			else
 				-- Split coordinates
 				local delta = (y2 - y1) / (y3 - y1)
-				local x, z = floor(x1 + delta * (x3 - x1)), floor(z1 + delta * (z3 - z1))
+				local x, z = floor(x1 + delta * (x3 - x1)), z1 + delta * (z3 - z1)
 
-				local colour = { c1[1] + delta * (c3[1] - c1[1]), c1[2] + delta * (c3[2] - c1[2]), c1[3] + delta * (c3[3] - c1[3]), c1[4] + delta * (c3[4] - c1[4]) }
+				local colour = {
+					c1[1] + delta * (c3[1] - c1[1]),
+					c1[2] + delta * (c3[2] - c1[2]),
+					c1[3] + delta * (c3[3] - c1[3]),
+					c1[4] + delta * (c3[4] - c1[4]),
+				}
 
-				-- print(x1, y1, z1, "|", x2, y2, z2, "|", x3, y3, z3, "|", x, y2, z2)
-				-- print(colour[1], colour[2], colour[3])
+				print(1, x1, y1, z1)
+				print(2, x2, y2, z2)
+				print(2, x3, y3, z3)
+				print(3, x, y2, z)
+				print(colour[1], colour[2], colour[3])
+				outline(x1, y1, -1, x2, y2, -1, x, y2, -1, colour)
+				outline(x2, y2, -1, x, y2, -1, x3, y3, -1, colour)
+
 				fillBottomTriangle(x1, y1, z1, x2, y2, z2, x, y2, z, c1, c2, colour)
 				fillTopTriangle(x2, y2, z2, x, y2, z, x3, y3, z3, c2, colour, c3)
+
 			end
 		end
 	end
@@ -346,4 +367,7 @@ return function(width, height, defColour)
 		triangleBlended = triangleBlended,
 	}
 end
+
+
+
 
