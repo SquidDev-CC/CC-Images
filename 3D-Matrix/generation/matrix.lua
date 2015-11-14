@@ -5,8 +5,7 @@
 	If it doesn't, then it is still pretty cool :).
 ]]
 
-local insert, concat, load = table.insert, table.concat, loadstring
-local withDebug = true
+local insert, concat = table.insert, table.concat
 
 local function writeGetters(name, rows, columns, builder)
 	local accessor = "local " .. name .. "_"
@@ -17,9 +16,9 @@ local function writeGetters(name, rows, columns, builder)
 	end
 end
 
-local function createMultiply(lRows, lColumns, rRows, rColumns)
+local function createMultiply(lRows, lColumns, rRows, rColumns, withDebug)
 	if lColumns ~= rRows then error(("Cannot multiply %sx%s with %sx%s"):format(lRows, lColumns, rRows, rColumns)) end
-	local builder = {"return function(l, r)\n"}
+	local builder = {"function(l, r)\n"}
 	writeGetters("l", lRows, lColumns, builder)
 	writeGetters("r", rRows, rColumns, builder)
 
@@ -41,11 +40,11 @@ local function createMultiply(lRows, lColumns, rRows, rColumns)
 	end
 	insert(builder, "}\nend")
 
-	return load(concat(builder))()
+	return concat(builder)
 end
 
-local function createMultiplyScalar(rows, cols)
-	local builder = {"return function(m, f)\nreturn{"}
+local function createMultiplyScalar(rows, cols, withDebug)
+	local builder = {"function(m, f)\nreturn{"}
 	if withDebug then
 		insert(builder, "rows=" .. rows .. ", cols=" .. cols .. ",\n")
 	end
@@ -57,11 +56,11 @@ local function createMultiplyScalar(rows, cols)
 	end
 
 	insert(builder, "}\nend")
-	return load(concat(builder))()
+	return concat(builder)
 end
 
-local function createTranspose(rows, cols)
-	local builder = {"return function(m)\nreturn {\n"}
+local function createTranspose(rows, cols, withDebug)
+	local builder = {"function(m)\nreturn {\n"}
 
 	if withDebug then
 		insert(builder, "rows=" .. cols .. ", cols=" .. rows .. ",\n")
@@ -75,11 +74,11 @@ local function createTranspose(rows, cols)
 	end
 
 	insert(builder, "}\nend")
-	return load(concat(builder))()
+	return concat(builder)
 end
 
-local function createIdentity(dim)
-	local builder = {"return function()\nreturn {\n"}
+local function createIdentity(dim, withDebug)
+	local builder = {"function()\nreturn {\n"}
 	if withDebug then
 		insert(builder, "rows=" .. dim .. ", cols=" .. dim .. ",\n")
 	end
@@ -92,24 +91,10 @@ local function createIdentity(dim)
 	end
 
 	insert(builder, "}\nend")
-	return load(concat(builder))()
-end
-
-local function printMatrix(matrix, rows, cols)
-	rows = assert(rows or matrix.rows, "No rows specified")
-	cols = assert(cols or matrix.cols, "No cols specified")
-	print("Matrix " .. rows .. "x" .. cols .. ":")
-	for row = 1, rows do
-		for col = 1, cols do
-			if col ~= 1 then io.write("\t") end
-			io.write(tostring(matrix[(row + (col - 1) * rows)]))
-		end
-		print("")
-	end
+	return concat(builder)
 end
 
 return {
-	print = printMatrix,
 	createIdentity = createIdentity,
 	createTranspose = createTranspose,
 	createMultiply = createMultiply,

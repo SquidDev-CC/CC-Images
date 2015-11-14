@@ -1,5 +1,5 @@
-local pairs, unpack = pairs, unpack
-
+local pairs = pairs
+local colors = colors or setmetatable({}, {__index = function() return 1 end})
 local termSets = {
 	[colors.white] = {240, 240, 240},
 	[colors.orange] = {242, 178, 51},
@@ -38,17 +38,11 @@ local strSets = {
 	["f"] = {0, 0, 0},
 }
 
-
-local function colorDiff(r, g, b, r1, g1, b1)
-	-- return ((r - r1) * .299)^2 + ((g - g1) * .587)^2 + ((b - b1) * .114)^2
-	return (r - r1)^2 + (g - g1)^2 + (b - b1)^2
-end
-
 local function findClosestColor(colors, r, g, b)
 	local smallestDifference = nil
 	local smallestColor = nil
 	for id, rgb in pairs(colors) do
-		local diff = colorDiff(r, g, b, unpack(rgb))
+		local diff = (r - rgb[1])^2 + (g - rgb[2])^2 + (b - rgb[3])^2
 
 		if not smallestDifference or diff < smallestDifference then
 			smallestColor = id

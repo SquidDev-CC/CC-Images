@@ -7,8 +7,6 @@
 		- https://github.com/g-truc/glm/blob/master/glm/gtc/matrix_transform.inl
 		- http://www.codinglabs.net/article_world_view_projection_matrix.aspx
 ]]
-local matrix = require('matrix')
-local identity = matrix.createIdentity(4)
 local sin, cos, tan = math.sin, math.cos, math.tan
 
 local function translate(x, y, z)
@@ -60,35 +58,28 @@ local function rotateZ(a)
 end
 
 local function orthographic(left, right, bottom, top, zNear, zFar)
-	local i = identity()
 	local invRL, invTB, invFN = 1 / (right - left), 1 / (top - bottom), 1 / (zNear - zFar)
 
-	-- Scaling
-	i[1] = 2 * invRL
-	i[6] = 2 * invTB
-	i[11] = -2 * invFN
+	return {
+		2 * invRL, 0,         0,          0,
+		0,         2 * invTB, 0,          0,
+		0,         0,         -2 * invFN, 0,
 
-	-- Translate everything
-	i[13] = -(right + left) * invRL
-	i[14] = -(top + bottom) * invTB
-	i[15] = -(zFar + zNear) * invFN
-
-	return i
+		-- Translate
+		(-right + left) * invRL, -(top + bottom) * invTB, -(zFar + zNear) * invFN, 1,
+	}
 end
 
 local function perspective(fovy, aspect, zNear, zFar)
-	local i = identity()
 	local tanHalfFovy = tan(fovy / 2)
 
 	-- Diagonals
-	i[1] = 1 / (aspect * tanHalfFovy)
-	i[6] = 1 / tanHalfFovy
-	i[11] = -(zFar + zNear) / (zFar - zNear)
-
-	i[12] = -1
-	i[15] = -(2 * zNear * zFar) / (zFar - zNear)
-	i[16] = 0
-	return i
+	return {
+		1 / (aspect * tanHalfFovy), 0, 0, 0,
+		0, 1 / tanHalfFovy, 0, 0,
+		0, 0, -(zFar + zNear) / (zFar - zNear), -1,
+		0, 0, -(2 * zNear * zFar) / (zFar - zNear), 0,
+	}
 end
 
 return {
