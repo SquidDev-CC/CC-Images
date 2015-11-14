@@ -65,6 +65,11 @@ return function(depthTest, blending, dimensions)
 		end
 	end
 
+	if blending == nil then
+		insert(builder, "local blending = true\n")
+		insert(builder, "export.setBlending = function(value) blending = value end\n")
+	end
+
 	insert(builder, "export.clear = function(colour)\nclearColour(colour)\n")
 	if depthTest ~= false then insert(builder, "clearDepth()\n") end
 	insert(builder, "end\n")
@@ -90,7 +95,32 @@ return function(depthTest, blending, dimensions)
 		insert(builder, "depth[index] = z\n")
 	end
 
-	insert(builder, "colours[index] = colour\n")
+	if blending == false then
+		insert(builder, "colours[index] = colour\n")
+	else
+		insert(builder, "if ")
+		if blending == nil then insert(builder, "not blending or ") end
+		insert(builder, "colour[4] == 255 then colours[index] = colour else\n")
+		insertVars [[
+			local dest, alph = colours[index], colour[4] / 255
+			local inv = 1 - alph
+			colours[index] = {colour[1] * alph + dest[1] * inv, colour[2] * alph + dest[2] * inv, colour[3] * alph + dest[3] * inv, 255}
+		end
+		]]
+
+		--[[
+			This code exists in order to debug things. Sometimes I get negative colours which is really broken.
+			local c = colours[index]
+			if c[1] > 256 or c[2] > 256 or c[3] > 256 or c[1] < 0 or c[2] < 0 or c[3] < 0 then
+				print("Out:", c[1], c[2], c[3], c[4])
+				print("Src:", colour[1], colour[2], colour[3], colour[4])
+				print("Dest:", dest[1], dest[2], dest[3], dest[4])
+
+				print("Everything broke")
+			end
+		]]
+	end
+
 
 	if depthTest ~= false then insert(builder, "end\n") end
 	insert(builder, "end\nexport.pixel = pixel\n")
