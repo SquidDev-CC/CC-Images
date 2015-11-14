@@ -45,7 +45,7 @@ do -- Generated files
 
 		insert(builder, "local width, height if term then width, height = term.getSize() else width, height = 400, 300 end\n")
 		insert(builder, "local buffer = (function(...)\n")
-		insert(builder, buffer(true, true))
+		insert(builder, buffer(true, false))
 		insert(builder, "\nend)(width, height)\n")
 
 		insert(builder, "buffer.line = (function(...)\n")

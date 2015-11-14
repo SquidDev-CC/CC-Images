@@ -145,7 +145,7 @@ return function(depthTest, blending, dimensions)
 	insertVars [[
 	local blit_fore = ("0"):rep(${width})
 	local blit_text = (" "):rep(${width})
-	local closest, cols = colors.findClosestColor, colors.strSets
+	local closest, cols = colors.findClosestCached, colors.strSets
 	local insert, concat = table.insert, table.concat
 	export.cc = function(term, x, y)
 		local blit, set = term.blit, term.setCursorPos
@@ -167,6 +167,7 @@ return function(depthTest, blending, dimensions)
 		for y = 1, ${height} do
 			local offset = (y - 1) * ${width}
 			local back = {}
+
 			for x = 1 , ${width} do
 				local colour = colours[offset + x]
 				insert(back, closest(cols, colour[1], colour[2], colour[3]))

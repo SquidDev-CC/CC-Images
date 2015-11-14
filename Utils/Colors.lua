@@ -53,8 +53,31 @@ local function findClosestColor(colors, r, g, b)
 	return smallestColor
 end
 
+local closestCache = {}
+
+--- Find the closest colour using a cache to store the results.
+-- This is because findClosestColor is not the fastest code.
+-- However, this could grow to be 256 ^ 3 bytes large (over 14MiB) which isn't great.
+local function findClosestCached(colors, r, g, b)
+	local cache = closestCache[colors]
+	if not cache then
+		cache = {}
+		closestCache[colors] = cache
+	end
+
+	local index = r * 65536 + g * 256 + b
+	local result = cache[index]
+	if not result then
+		result = findClosestColor(colors, r, g, b)
+		cache[index] = result
+	end
+
+	return result
+end
+
 return {
 	findClosestColor = findClosestColor,
+	findClosestCached = findClosestCached,
 	termSets = termSets,
 	strSets = strSets,
 }
