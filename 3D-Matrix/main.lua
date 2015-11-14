@@ -150,6 +150,12 @@ if term then
 		if e == "char" then
 			pressed(arg)
 		elseif e == "timer" and arg == id then
+			id = os.startTimer(1 / fps)
+
+			if not changed then
+				rotY = rotY + 0.05
+				changed = true
+			end
 			if changed then
 				local vStart = clock()
 				refreshMatrix()
@@ -158,9 +164,9 @@ if term then
 				local start = clock()
 				g.silica(term.native())
 				profile("Blitting", clock() - start)
-				profile("TOTAL", clock() - start)
+				profile("TOTAL", clock() - vStart)
+				debug("FPS: " .. (1 / (clock() - vStart)))
 			end
-			id = os.startTimer(1 / fps)
 		end
 	end
 elseif love then
@@ -175,5 +181,5 @@ elseif love then
 		g.loveDepth(love, dispWidth)
 	end
 else
-	error("Requires running in silica of Love")
+	error("Requires running in Silica or Love")
 end
