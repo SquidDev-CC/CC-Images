@@ -27,9 +27,9 @@ local indexes = {
 	-- {8,6,5},
 
 	{3,7,4}, -- Left
-	{4,7,8},
-	{5,6,2},
-	{2,1,5},
+	-- {4,7,8},
+	-- {5,6,2},
+	-- {2,1,5},
 
 	-- {5,1,4}, -- Top
 	-- {4,8,5},
@@ -93,7 +93,6 @@ local function drawLine(g, v, group)
 		colours[group[1]], colours[group[2]]
 	)
 end
-
 local rotX, rotY = 0, 0
 local x, y, z = 0, 0, 8
 
@@ -105,8 +104,10 @@ local function refreshMatrix()
 		transform.rotateY(rotY),
 	})
 	local mvp = compose(projection, view)
+
 	g.clear()
 	local p = {}
+
 	for k, v in pairs(verticies) do
 		local coord = matrix.vector(mvp, v)
 		if coord[4] == 0 then coord[4] = 1 print("SOMETHING IS 0", coord[3]) end
@@ -125,7 +126,6 @@ local function refreshMatrix()
 end
 
 refreshMatrix()
-
 local function pressed(key)
 	if key == "a" then
 		rotY = (rotY + 0.1) % (2 * math.pi)
