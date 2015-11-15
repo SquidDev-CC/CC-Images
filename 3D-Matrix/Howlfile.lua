@@ -90,7 +90,7 @@ end
 do -- Cubic
 	local cubic = Dependencies()
 	cubic:File "../Utils/Colors.lua" :Name "colors"
-	cubic:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
+	cubic:File "build/cubic/graphics.lua"  :Name "graphics" :Depends "colors"
 	cubic:File "build/matrix4x4.lua" :Name "matrix"
 	cubic:File "tools/transform.lua" :Name "transform"
 	cubic:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
@@ -106,6 +106,37 @@ do -- Cubic
 	Tasks:Combine("cubic", cubic, "build/cubic/main.lua")
 		:Description "Cubic"
 
+	local insert, concat = table.insert, table.concat
+	Tasks:AddTask("cubicGraphics", {}, function()
+		local builder = {}
+		local buffer = dofile(File "generation/ccBuffer.lua")
+		local graphics = dofile(File "generation/graphics.lua")
+
+		insert(builder, "local width, height if term then width, height = term.getSize() else width, height = 400, 300 end\n")
+		insert(builder, "local buffer = (function(...)\n")
+		insert(builder, buffer(true, false))
+		insert(builder, "\nend)(width, height)\n")
+
+		local h = fs.open(File "cubic/texture.lua", "r")
+		local texture = h.readAll()
+		h.close()
+		insert(builder, texture)
+		insert(builder, "\n")
+
+		insert(builder, "buffer.line = (function(...)\n")
+		insert(builder, graphics.line(nil, {{-1, 1}, 1, 1}))
+		insert(builder, "\nend)(shader, width, height)\n")
+		insert(builder, "buffer.triangle = (function(...)\n")
+		insert(builder, graphics.triangle(nil, {{-1, 1}, 1, 1}))
+		insert(builder, "\nend)(shader, width, height)\n")
+		insert(builder, "return buffer\n")
+
+		local handle = fs.open(File "build/cubic/graphics.lua", "w")
+		handle.write(concat(builder))
+		handle.close()
+	end)
+		:Produces("build/cubic/graphics.lua")
+		:Description("Cubic graphics package")
 end
 
 Tasks:Clean("clean", "build")

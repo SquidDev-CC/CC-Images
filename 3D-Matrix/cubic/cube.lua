@@ -8,12 +8,21 @@ local side = {
 }
 
 local positions = {
-		{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 1 } },
-		{ { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 }, { 1, 1, 1 } },
-		{ { 0, 1, 0 }, { 0, 1, 1 }, { 1, 1, 0 }, { 1, 1, 1 } },
-		{ { 0, 0, 0 }, { 0, 0, 1 }, { 1, 0, 0 }, { 1, 0, 1 } },
-		{ { 0, 0, 0 }, { 0, 1, 0 }, { 1, 0, 0 }, { 1, 1, 0 } },
-		{ { 0, 0, 1 }, { 0, 1, 1 }, { 1, 0, 1 }, { 1, 1, 1 } }
+	{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 1 } },
+	{ { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 }, { 1, 1, 1 } },
+	{ { 0, 1, 0 }, { 0, 1, 1 }, { 1, 1, 0 }, { 1, 1, 1 } },
+	{ { 0, 0, 0 }, { 0, 0, 1 }, { 1, 0, 0 }, { 1, 0, 1 } },
+	{ { 0, 0, 0 }, { 0, 1, 0 }, { 1, 0, 0 }, { 1, 1, 0 } },
+	{ { 0, 0, 1 }, { 0, 1, 1 }, { 1, 0, 1 }, { 1, 1, 1 } }
+}
+
+local uvs = {
+	{ { 1, 1 }, { 0, 1 }, { 1, 0 }, { 0, 0 } },
+	{ { 0, 1 }, { 1, 1 }, { 0, 0 }, { 1, 0 } },
+	{ { 1, 0 }, { 1, 1 }, { 0, 0 }, { 0, 1 } },
+	{ { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } },
+	{ { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } },
+	{ { 0, 1 }, { 0, 0 }, { 1, 1 }, { 1, 0 } },
 }
 
 local indicies = {
@@ -26,23 +35,26 @@ local indicies = {
 }
 
 local insert = table.insert
-local function face(verticies, buffer, x, y, z, colour, side, xWidth, yWidth, zWidth)
-	assert(colour)
+local function face(verticies, buffer, x, y, z, side)
 	local ind = indicies[side]
 	local pos = positions[side]
+	local uv = uvs[side]
 
 	local triangle = {}
 	local offset = 0
 	for i = 1, 6 do
-		local v = pos[ind[i]]
-		triangle[(i - 1) % 3 + 1] = verticies(
-			x + xWidth * v[1],
-			y + yWidth * v[2],
-			z + zWidth * v[3]
-		)
+		local j = ind[i]
+		local text, ver = uv[j], pos[j]
+		insert(triangle, verticies(
+			x + ver[1],
+			y + ver[2],
+			z + ver[3]
+		))
+		insert(triangle, text[1])
+		insert(triangle, text[2])
 
 		if i % 3 == 0 then
-			triangle[4] = colour
+			-- Here we could insert the texture
 			insert(buffer, triangle)
 			triangle = {}
 		end

@@ -59,51 +59,15 @@ local face, side, vertex = cube.face, cube.side, cube.makeVertexCache
 -- This 'grows' triangles which allows us
 local function buildRow(verticies, buffer, chunk, x, y, z, tX, tY, tZ, sideNumber)
 	local vector = side[sideNumber]
-	local continuousCount = 0
-	local previousBlock
 
 	local nextOffset = tX + (tY - 1) * 8 + (tZ - 1) * 64
 	for i = 1, 8 do
 		local offset = x + 8 * (y - 1) + 64 * (z - 1)
 		local block = chunk[offset]
 
-		local drawFace = block and shouldShowFace(chunk, x, y, z, vector)
-
-		-- If we are building a vertex list
-		if continuousCount > 0 then
-			local endFlow = true
-
-			-- If we aren't the last block, we should be drawing
-			if drawFace and i < 8 then
-				-- We should stop this continuation if the blocks aren't equal
-				endFlow = previousBlock ~= block
-			end
-
-			if endFlow then
-				-- This block type has changed: Flush it
-				face(
-					verticies, buffer,
-					x - tX * continuousCount,
-					y - tY * continuousCount,
-					z - tZ * continuousCount,
-					previousBlock,
-					sideNumber,
-					tX * (continuousCount - 1) + 1,
-					tY * (continuousCount - 1) + 1,
-					tZ * (continuousCount - 1) + 1
-				)
-
-				continuousCount = 0
-			end
-		end
-
-		if drawFace then
-			if i < 8 then
-				previousBlock = block
-				continuousCount = continuousCount + 1
-			else
-				face(verticies, buffer, x, y, z, block, sideNumber, 1, 1, 1)
-			end
+		if block and shouldShowFace(chunk, x, y, z, vector) then
+			-- TODO: Add texture
+			face(verticies, buffer, x, y, z, sideNumber)
 		end
 
 		x = x + tX
@@ -146,9 +110,36 @@ local function build(chunk)
 	-- for k,v in pairs(indexBuffer) do print(v[1], v[2], v[3], v[4], "|", t(vertexBuffer[v[1]]), t(vertexBuffer[v[2]]), t(vertexBuffer[v[3]])) end
 end
 
+local line, triangle = graphics.line, graphics.triangle
+local function draw(verticies, group)
+	local a, b, c = verticies[group[1]], verticies[group[4]], verticies[group[7]]
+
+	if true then
+		triangle(
+			a[1], a[2], a[3], group[2], group[3],
+			b[1], b[2], b[3], group[5], group[6],
+			c[1], c[2], c[3], group[8], group[9]
+		)
+	else
+		line(
+			a[1], a[2], a[3], group[2], group[3],
+			b[1], b[2], b[3], group[5], group[6]
+		)
+		line(
+			a[1], a[2], a[3], group[2], group[3],
+			c[1], c[2], c[3], group[8], group[9]
+		)
+		line(
+			c[1], c[2], c[3], group[8], group[9],
+			b[1], b[2], b[3], group[5], group[6]
+		)
+	end
+end
+
+
 local pairs = pairs
 local mulpVector = matrix.vector
-local normalise, draw = runner.normalise, runner.draw
+local normalise = runner.normalise
 local function render(chunk, mvp)
 	if chunk.changed ~= false then build(chunk) end
 	if chunk.empty then return end
@@ -160,7 +151,7 @@ local function render(chunk, mvp)
 	end
 
 	for _, k in pairs(chunk.index) do
-		draw(verticies, k, k[4])
+		draw(verticies, k)
 	end
 end
 
