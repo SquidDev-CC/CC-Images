@@ -124,7 +124,7 @@ local function line(dimensions, varying, uniform)
 
 	for i, count in pairs(varying) do
 		if count == 1 then
-			insertWith("local var_$1, dvar_$1 = var1_$1, (var2_$1 - var1$1) / dx\n", i)
+			insertWith("local var_$1, dvar_$1 = var1_$1, (var2_$1 - var1_$1) / dx\n", i)
 		else
 			for j = 1, count do
 				insertWith("local var_$1_$2 = var1_$1[$2] local dvar_$1_$2 = (var2_$1[$2] - var_$1_$2) / dx\n", i, j)
@@ -133,7 +133,7 @@ local function line(dimensions, varying, uniform)
 	end
 
 	insert(builder, "\nfor i = 1, dx do\n")
-	buildPixel(builder, varying, uniform, "var")
+	buildPixel(builder, varying, uniform, "var_$")
 
 	insert(builder, [[
 	while e >= 0 do

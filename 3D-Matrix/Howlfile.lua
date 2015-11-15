@@ -77,13 +77,35 @@ end
 do -- Main Script
 	local main = Dependencies()
 	main:File "../Utils/Colors.lua" :Name "colors"
-	main:File "build/graphics.lua" :Name "graphics" :Depends "colors"
+	main:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
 	main:File "build/matrix4x4.lua" :Name "matrix"
 	main:File "tools/transform.lua" :Name "transform"
-	main:Main "main.lua" :Depends {"graphics", "matrix", "transform"}
+	main:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
+	main:Main "main.lua" :Depends {"graphics", "matrix", "transform", "runner"}
 
 	Tasks:Combine("main", main, "build/main.lua")
 		:Description "Example program"
+end
+
+do -- Cubic
+	local cubic = Dependencies()
+	cubic:File "../Utils/Colors.lua" :Name "colors"
+	cubic:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
+	cubic:File "build/matrix4x4.lua" :Name "matrix"
+	cubic:File "tools/transform.lua" :Name "transform"
+	cubic:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
+
+	cubic:File "cubic/chunk.lua"     :Name "chunk" :Depends { "cube", "matrix", "runner", "transform"}
+	cubic:File "cubic/cube.lua"      :Name "cube"
+	cubic:File "cubic/generation.lua":Name "generation"
+
+	cubic:Main "cubic/main.lua"
+		:Depends {"graphics", "matrix", "transform", "runner"}
+		:Depends {"chunk", "generation"}
+
+	Tasks:Combine("cubic", cubic, "build/cubic/main.lua")
+		:Description "Cubic"
+
 end
 
 Tasks:Clean("clean", "build")
@@ -91,6 +113,6 @@ Tasks:Clean("clean", "build")
 Tasks:MinifyAll()
 
 Tasks:AddTask("build", {"clean"})
-	:Requires {"build/main.min.lua"}
+	:Requires {"build/main.min.lua", "build/cubic/main.min.lua"}
 
 Tasks:Default "build"

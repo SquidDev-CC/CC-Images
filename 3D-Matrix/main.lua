@@ -37,40 +37,10 @@ local indexes = {
 	{6,7,3, 6},
 }
 
+local pairs, clock = pairs, os.clock
+local normalise, draw = runner.normalise, runner.draw
 
-local g = graphics
-local debug = cclite and cclite.log or print
-local clock, format = os.clock, string.format
-local function profile(section, time) debug(format("[%.2f] %s: %.5f", clock(), section, time)) end
-
-local dispWidth, dispHeight = g.size()
 local projection = transform.perspective(math.pi / 2, 1, 0.1, 6.0)
-
-local function compose(...)
-	local result, items = ..., {select(2, ...)}
-	for _, item in pairs(items) do
-		result = matrix.matrix(result, item)
-	end
-
-	return result
-end
-
-local function normalise(coord)
-	coord[1] = (coord[1] + 1) * dispWidth / 2
-	coord[2] = (coord[2] + 1) * dispHeight / 2
-	coord[3] = (coord[3] + 1) / 2
-
-	return coord
-end
-
-local function draw(g, v, group)
-	local a, b, c = v[group[1]], v[group[2]], v[group[3]]
-	g.triangle(
-		a[1], a[2], a[3], -- colours[group[1]],
-		b[1], b[2], b[3], -- colours[group[2]],
-		c[1], c[2], c[3], colours[group[4]]
-	)
-end
 
 local rotX, rotY = 0, 0
 local x, y, z = 0, 0, 8
@@ -79,40 +49,43 @@ local function refreshMatrix()
 	local start
 
 	start = clock()
-	local view = compose(unpack {
+	local view = runner.compose(
 		transform.scale(1/20, 1/20, 1/20),
 		transform.translate(-x, -y, -z),
 		transform.rotateX(rotX),
-		transform.rotateY(rotY),
-	})
-	local mvp = compose(projection, view)
-	profile("Preparing MVP", clock() - start)
+		transform.rotateY(rotY)
+	)
+	local mvp = runner.compose(projection, view)
+	runner.profile("Preparing MVP", clock() - start)
 
-	g.clear()
+	graphics.clear()
 
 	start = clock()
 	local p = {}
 	for k, v in pairs(verticies) do
 		local coord = matrix.vector(mvp, v)
-		if coord[4] == 0 then coord[4] = 1 print("SOMETHING IS 0", coord[3]) end
+		if coord[4] == 0 then
+			coord[4] = 1
+			debug("SOMETHING IS 0", coord[3])
+		end
 		coord[1] = coord[1] / coord[4]
 		coord[2] = coord[2] / coord[4]
 		p[k] = normalise(coord)
 	end
-	profile("Preparing Verticies", clock() - start)
+	runner.profile("Preparing Verticies", clock() - start)
 
 	start = clock()
 	for _, group in pairs(indexes) do
-		draw(g, p, group)
+		draw(p, group, colours[group[4]])
 	end
-	profile("Drawing", clock() - start)
+	runner.profile("Drawing", clock() - start)
 end
 
-refreshMatrix()
 local rotSpeed, speed = 0.01, 0.1
 
-local changed = false
-local function pressed(key)
+local function pressed(event, key)
+	if event ~= "char" then return false end
+
 	if key == "a" then
 		rotY = (rotY + rotSpeed) % (2 * math.pi)
 	elseif key == "d" then
@@ -136,50 +109,12 @@ local function pressed(key)
 	elseif key == "r" then
 		rotY = 0
 		rotX = 0
+	else
+		return false
 	end
 
-	changed = true
+	return true
 end
 
-if term then
-	g.silica(term.native())
-	local fps = 30
-	local id = os.startTimer(1 / fps)
-	while true do
-		local e, arg = os.pullEvent()
-		if e == "char" then
-			pressed(arg)
-		elseif e == "timer" and arg == id then
-			id = os.startTimer(1 / fps)
-
-			if not changed then
-				rotY = rotY + 0.05
-				changed = true
-			end
-			if changed then
-				local vStart = clock()
-				refreshMatrix()
-				changed = false
-
-				local start = clock()
-				g.silica(term.native())
-				profile("Blitting", clock() - start)
-				profile("TOTAL", clock() - vStart)
-				debug("FPS: " .. (1 / (clock() - vStart)))
-			end
-		end
-	end
-elseif love then
-	love.keypressed = pressed
-
-	function love.draw()
-		if changed then
-			refreshMatrix()
-			changed = false
-		end
-		g.love(love)
-		g.loveDepth(love, dispWidth)
-	end
-else
-	error("Requires running in Silica or Love")
-end
+runner.setup(pressed, refreshMatrix)
+runner.run(20)
