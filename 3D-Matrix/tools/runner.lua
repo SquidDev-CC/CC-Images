@@ -28,6 +28,23 @@ local function normalise(coord)
 	return coord
 end
 
+local abs = math.abs
+local function project(coord)
+	if abs(coord[4]) < 1e-2 then
+		local orig = coord[4]
+		if coord[4] < 0 then
+			coord[4] = -1e-2
+		else
+			coord[4] = 1e-2
+		end
+		-- runner.debug("Resetting a coordinate", coord[1], coord[2], coord[3], coord[4], orig)
+	end
+	coord[1] = coord[1] / coord[4]
+	coord[2] = coord[2] / coord[4]
+
+	return normalise(coord)
+end
+
 local function draw(verticies, group, colour)
 	local a, b, c = verticies[group[1]], verticies[group[2]], verticies[group[3]]
 	graphics.triangle(
@@ -101,6 +118,7 @@ return {
 	compose = compose,
 	normalise = normalise,
 	draw = draw,
+	project = project,
 
 	-- Running
 	run = run,

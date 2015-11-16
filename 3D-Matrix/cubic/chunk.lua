@@ -141,24 +141,8 @@ end
 
 local pairs = pairs
 local mulpVector = matrix.vector
-local normalise = runner.normalise
+local project = runner.project
 
-local abs = math.abs
-local function project(coord)
-	if abs(coord[4]) < 1e-2 then
-		local orig = coord[4]
-		if coord[4] < 0 then
-			coord[4] = -1e-2
-		else
-			coord[4] = 1e-2
-		end
-		-- runner.debug("Resetting a coordinate", coord[1], coord[2], coord[3], coord[4], orig)
-	end
-	coord[1] = coord[1] / coord[4]
-	coord[2] = coord[2] / coord[4]
-
-	return normalise(coord)
-end
 local function render(chunk, mvp)
 	if chunk.changed ~= false then build(chunk) end
 	if chunk.empty then return end

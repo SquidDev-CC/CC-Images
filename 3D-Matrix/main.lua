@@ -38,7 +38,7 @@ local indexes = {
 }
 
 local pairs, clock = pairs, os.clock
-local normalise, draw = runner.normalise, runner.draw
+local project, draw = runner.project, runner.draw
 
 local projection = transform.perspective(math.pi / 2, 1, 0.1, 6.0)
 
@@ -46,9 +46,8 @@ local rotX, rotY = 0, 0
 local x, y, z = 0, 0, 8
 
 local function refreshMatrix()
-	local start
+	local start = clock()
 
-	start = clock()
 	local view = runner.compose(
 		transform.scale(1/20, 1/20, 1/20),
 		transform.translate(-x, -y, -z),
@@ -56,26 +55,25 @@ local function refreshMatrix()
 		transform.rotateY(rotY)
 	)
 	local mvp = runner.compose(projection, view)
-	runner.profile("Preparing MVP", clock() - start)
 
 	graphics.clear()
 
-	start = clock()
 	local p = {}
 	for k, v in pairs(verticies) do
-		local coord = matrix.vector(mvp, v)
-		if coord[4] == 0 then
-			coord[4] = 1
-			debug("SOMETHING IS 0", coord[3])
-		end
-		coord[1] = coord[1] / coord[4]
-		coord[2] = coord[2] / coord[4]
-		p[k] = normalise(coord)
+		p[k] = project(matrix.vector(mvp, v))
 	end
-	runner.profile("Preparing Verticies", clock() - start)
+
+	local sorted = {}
+	for i, group in pairs(indexes) do
+		sorted[i] = {group, p[group[1]][3] + p[group[2]][3] + p[group[3]][3]}
+		-- runner.debug("Average " .. i .. " => " .. sorted[i][2])
+	end
+	table.sort(sorted, function(a, b) return a[2] > b[2] end)
+	runner.profile("Prepare", clock() - start)
 
 	start = clock()
-	for _, group in pairs(indexes) do
+	for _, group in pairs(sorted) do
+		group = group[1]
 		draw(p, group, colours[group[4]])
 	end
 	runner.profile("Drawing", clock() - start)
@@ -116,5 +114,5 @@ local function pressed(event, key)
 	return true
 end
 
-runner.setup(pressed, refreshMatrix)
+runner.setup(pressed, refreshMatrix, false)
 runner.run(20)
