@@ -124,10 +124,10 @@ do -- Cubic
 		insert(builder, "\n")
 
 		insert(builder, "buffer.line = (function(...)\n")
-		insert(builder, graphics.line(nil, {{-1, 1}, 1, 1}))
+		insert(builder, graphics.line(nil, {{-1, 1}, 1, 1}, {1}))
 		insert(builder, "\nend)(shader, width, height)\n")
 		insert(builder, "buffer.triangle = (function(...)\n")
-		insert(builder, graphics.triangle(nil, {{-1, 1}, 1, 1}))
+		insert(builder, graphics.triangle(nil, {{-1, 1}, 1, 1}, {1}))
 		insert(builder, "\nend)(shader, width, height)\n")
 		insert(builder, "return buffer\n")
 

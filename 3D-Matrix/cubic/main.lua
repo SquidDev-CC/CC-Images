@@ -5,15 +5,15 @@ local pairs, clock = pairs, os.clock
 
 local projection = transform.perspective(math.pi / 2, 1, 0.1, 1000.0)
 
-local rotX, rotY = 0, -math.pi/2
-local x, y, z = 0, 0, 7
+local rotX, rotY = 0.01, 0.8
+local x, y, z = -0.2, 3.1, 9.7
 
 local function refreshMatrix()
 	local start
 
 	start = clock()
 	local view = runner.compose(
-		transform.scale(1/10, 1/10, 1/10),
+		transform.scale(1/5, 1/5, 1/5),
 		transform.rotateY(-rotY),
 		transform.rotateX(-rotX),
 		transform.translate(-x, -y, -z)

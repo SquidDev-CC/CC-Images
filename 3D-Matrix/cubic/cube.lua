@@ -35,7 +35,7 @@ local indicies = {
 }
 
 local insert = table.insert
-local function face(verticies, buffer, x, y, z, side)
+local function face(verticies, buffer, x, y, z, side, texture)
 	local ind = indicies[side]
 	local pos = positions[side]
 	local uv = uvs[side]
@@ -55,6 +55,7 @@ local function face(verticies, buffer, x, y, z, side)
 
 		if i % 3 == 0 then
 			-- Here we could insert the texture
+			insert(triangle, texture[side])
 			insert(buffer, triangle)
 			triangle = {}
 		end
@@ -66,13 +67,20 @@ local function makeVertexCache(cache)
 	local index = 1
 
 	local function add(x, y, z)
-		local offset = x + 8 * (y - 1) + 64 * (z - 1)
+		local offset = x + 9 * (y - 1) + 81 * (z - 1)
 		local value = lookup[offset]
 		if not value then
 			buffer[index] = {x, y, z, 1}
 			lookup[offset] = index
 			value = index
 			index = index + 1
+		end
+
+		local vec = buffer[lookup[offset]]
+		if vec[1] ~= x or vec[2] ~= y or vec[3] ~= z or vec[4] ~= 1 then
+			print("Expected:", x, y, z, 1)
+			print("Actual:  ", vec[1], vec[2], vec[3], vec[4])
+			print("Index:   ", offset, lookup[offset], vec[1] + 9 * (vec[2] - 1) + 81 * (vec[3] - 1))
 		end
 
 		return value

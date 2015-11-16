@@ -1,32 +1,9 @@
 -- This is included in a rather wacky way in the build script.
 -- It handles UV texture mapping
 
-local texture = {
-	"5","5","5","5","5","5","d","d",
-	"d","c","5","d","c","5","5","5",
-	"c","c","5","c","c","c","c","5",
-	"c","c","c","c","c","c","c","c",
-	"c","8","c","c","c","c","c","c",
-	"c","c","c","c","c","c","8","c",
-	"7","c","c","c","c","c","c","c",
-	"c","c","c","c","c","c","c","c",
-}
-
---[[
-Very basic paint image:
-	555555dd
-	dc5dc555
-	cc5cccc5
-	cccccccc
-	c8cccccc
-	cccccc8c
-	7ccccccc
-	cccccccc
-]]
-
 local floor = math.floor
 local pixel = buffer.pixel
-local function shader(x, y, z, u, v)
+local function shader(x, y, z, u, v, texture)
 	local u, v = floor(u * 8), floor(v * 8)
 
 	if u > 8 then u = 8 elseif u < 1 then u = 1 end

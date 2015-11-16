@@ -9,14 +9,55 @@ local heightmap = {
 	1, 2, 3, 4, 5, 6, 6, 7,
 }
 
-local colour = {242, 178, 204}
+
+local grassSide = {
+	"5","5","5","5","5","5","d","d",
+	"d","c","5","d","c","5","5","5",
+	"c","c","5","c","c","c","c","5",
+	"c","c","c","c","c","c","c","c",
+	"c","8","c","c","c","c","c","c",
+	"c","c","c","c","c","c","8","c",
+	"7","c","c","c","c","c","c","c",
+	"c","c","c","c","c","c","c","c",
+}
+
+local grassTop = {
+	"5", "5", "5", "5", "5", "5", "5", "5", "5",
+	"5", "5", "5", "5", "5", "5", "5", "5", "5",
+	"5", "5", "5", "5", "d", "d", "5", "5", "5",
+	"5", "5", "5", "5", "d", "5", "5", "5", "5",
+	"5", "5", "5", "5", "5", "5", "d", "d", "5",
+	"5", "5", "d", "5", "5", "5", "5", "d", "5",
+	"5", "5", "d", "d", "5", "5", "5", "5", "5",
+	"5", "5", "5", "5", "5", "5", "5", "5", "5",
+}
+
+local dirt = {
+	"c", "c", "c", "c", "c", "c", "c", "c",
+	"c", "c", "c", "c", "c", "c", "8", "c",
+	"c", "c", "c", "7", "c", "c", "c", "c",
+	"c", "c", "8", "c", "c", "c", "c", "c",
+	"c", "c", "c", "c", "7", "c", "c", "c",
+	"c", "c", "7", "c", "c", "c", "c", "c",
+	"c", "c", "c", "c", "c", "8", "c", "c",
+	"c", "c", "c", "c", "c", "c", "c", "c",
+}
+
+
+local grass = {grassSide, grassSide, grassTop, dirt, grassSide, grassSide}
+local dirt = {dirt, dirt, dirt, dirt, dirt, dirt}
 local function fromHeightMap(map)
 	local chunk = {}
 	for x = 1, 8 do
 		for z = 1, 8 do
 			local offset = x + (z - 1) * 64
-			for height = 1, map[x + (z - 1) * 8] do
-				chunk[offset + (height - 1) * 8] = colour
+			local height = map[x + (z - 1) * 8]
+			for y = 1, height do
+				local block = dirt
+				if y == height then
+					block = grass
+				end
+				chunk[offset + (y - 1) * 8] = block
 			end
 		end
 	end
@@ -25,3 +66,4 @@ local function fromHeightMap(map)
 end
 
 return fromHeightMap(heightmap)
+-- return {grass, [9] = grass}

@@ -103,7 +103,7 @@ return function(depthTest, dimensions)
 		oY = oY or 0
 
 		for y = 1, ${height} do
-			local offset = (y - 1) * ${width}
+			local offset = (${height} - y) * ${width}
 			for x = 1, ${width} do
 				local colour = colour_lookup[colours[offset + x]]
 				setColour(colour[1], colour[2], colour[3], 255)
@@ -120,7 +120,7 @@ return function(depthTest, dimensions)
 	export.cc = function(term, x, y)
 		local blit, set = term.blit, term.setCursorPos
 		for y = 1, ${height} do
-			local offset = (y - 1) * ${width}
+			local offset = (${height} - y) * ${width}
 			local back = {}
 			for x = 1 , ${width} do
 				insert(back, colours[offset + x])
@@ -134,7 +134,7 @@ return function(depthTest, dimensions)
 	export.silica = function(term, x, y)
 		local blit, set = term.blit, term.setCursorPos
 		for y = 1, ${height} do
-			local offset = (y - 1) * ${width}
+			local offset = (${height} - y) * ${width}
 			local back = {}
 
 			for x = 1 , ${width} do
@@ -155,7 +155,7 @@ return function(depthTest, dimensions)
 			oY = oY or 0
 
 			for y = 1, ${height} do
-				local offset = (y - 1) * ${width}
+				local offset = (${height} - y) * ${width}
 				for x = 1, ${width} do
 					if depth[offset + x] ~= inf then
 						local color = 255 - ((depth[offset + x] + 1) / 2 * 255)
