@@ -37,7 +37,7 @@ local function project(coord)
 		else
 			coord[4] = 1e-2
 		end
-		-- runner.debug("Resetting a coordinate", coord[1], coord[2], coord[3], coord[4], orig)
+		-- debug("Resetting a coordinate", coord[1], coord[2], coord[3], coord[4], orig)
 	end
 	coord[1] = coord[1] / coord[4]
 	coord[2] = coord[2] / coord[4]
@@ -100,6 +100,7 @@ local function run(fps)
 				changed = false
 			end
 			graphics.love(love)
+			graphics.loveDepth(love, 0, height)
 		end
 	else
 		error("Requires running in Silica or Love")

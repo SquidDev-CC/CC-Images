@@ -6,6 +6,8 @@
 		- http://www.songho.ca/opengl/gl_transform.html
 		- https://github.com/g-truc/glm/blob/master/glm/gtc/matrix_transform.inl
 		- http://www.codinglabs.net/article_world_view_projection_matrix.aspx
+		- http://blogs.msdn.com/b/davrous/archive/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript.aspx
+		- https://github.com/Steve132/uraster/blob/master/uraster.hpp
 ]]
 local sin, cos, tan = math.sin, math.cos, math.tan
 

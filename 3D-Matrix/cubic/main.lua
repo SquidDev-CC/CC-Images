@@ -3,7 +3,8 @@ local world = {['0.0.0'] = thisChunk}
 
 local pairs, clock = pairs, os.clock
 
-local projection = transform.perspective(math.pi / 2, 1, 0.1, 1000.0)
+local width, height = graphics.size()
+local projection = transform.perspective(math.pi / 2, width / height, 0.1, 6.0)
 
 local rotX, rotY = 0.01, 0.8
 local x, y, z = -0.2, 3.1, 9.7

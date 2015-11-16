@@ -40,7 +40,8 @@ local indexes = {
 local pairs, clock = pairs, os.clock
 local project, draw = runner.project, runner.draw
 
-local projection = transform.perspective(math.pi / 2, 1, 0.1, 6.0)
+local width, height = graphics.size()
+local projection = transform.perspective(math.pi / 2, width / height, 0.01, 1000.0)
 
 local rotX, rotY = 0, 0
 local x, y, z = 0, 0, 8
@@ -57,6 +58,7 @@ local function refreshMatrix()
 	local mvp = runner.compose(projection, view)
 
 	graphics.clear()
+	graphics.clearColour({255, 0, 0, 0, 255})
 
 	local p = {}
 	for k, v in pairs(verticies) do
@@ -65,8 +67,8 @@ local function refreshMatrix()
 
 	local sorted = {}
 	for i, group in pairs(indexes) do
-		sorted[i] = {group, p[group[1]][3] + p[group[2]][3] + p[group[3]][3]}
-		-- runner.debug("Average " .. i .. " => " .. sorted[i][2])
+		local a, b, c = p[group[1]], p[group[2]], p[group[3]]
+		sorted[i] = {group, a[3] + b[3] + c[3]}
 	end
 	table.sort(sorted, function(a, b) return a[2] > b[2] end)
 	runner.profile("Prepare", clock() - start)
