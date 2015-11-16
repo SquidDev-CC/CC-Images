@@ -49,7 +49,7 @@ local function run(fps)
 		local id = os.startTimer(delta)
 		while true do
 			local event = {os.pullEvent()}
-			if e == "timer" and arg == id then
+			if event[1] == "timer" and event[2] == id then
 				id = os.startTimer(delta)
 
 				if changed then
