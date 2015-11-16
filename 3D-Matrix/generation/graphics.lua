@@ -310,7 +310,7 @@ local function triangle(dimensions, varying, uniform)
 
 		insert(builder, "end\n\n")
 
-		insert(builder, "for y = y3, y1, -1 do\n")
+		insert(builder, "for y = y3, y1 + 1, -1 do\n")
 
 		insert(builder, "xStart, xEnd = xStart - dx1, xEnd - dx2\n")
 		for i, count in pairs(varying) do
