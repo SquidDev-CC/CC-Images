@@ -47,11 +47,17 @@ end
 
 local function draw(verticies, group, colour)
 	local a, b, c = verticies[group[1]], verticies[group[2]], verticies[group[3]]
-	graphics.triangle(
-		a[1], a[2], a[3],
-		b[1], b[2], b[3],
-		c[1], c[2], c[3], colour
-	)
+	if false then
+		graphics.triangle(
+			a[1], a[2], a[3],
+			b[1], b[2], b[3],
+			c[1], c[2], c[3], colour
+		)
+	else
+		graphics.line(a[1], a[2], a[3], b[1], b[2], b[3], colour)
+		graphics.line(a[1], a[2], a[3], c[1], c[2], c[3], colour)
+		graphics.line(c[1], c[2], c[3], b[1], b[2], b[3], colour)
+	end
 end
 
 local function run(fps)
