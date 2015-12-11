@@ -8,6 +8,13 @@ local floor, ceil, abs, inf = math.floor, math.ceil, math.abs, math.huge
 
 local insert, concat = table.insert, table.concat
 local pairs, assert, tonumber = pairs, assert, tonumber
+local declaration, insertWith = utils.declaration, utils.insertWith
+
+local declaration = function(builder, ...)
+	insert(builder, "(")
+	declaration(builder, ...)
+	insert(builder, ")\n")
+end
 
 local function buildBound(builder, value, nargs, comparison, bound)
 	insert(builder, "(")
@@ -40,19 +47,6 @@ local function genLimited(varying)
 	return limited
 end
 
-local function buildHeader(builder, varying, uniform, nargs)
-	insert(builder, "(")
-
-	for i = 1, nargs do
-		if i ~= 1 then insert(builder, ", ") end
-		insert(builder, "x" .. i .. ", y" .. i)
-		for j, _ in pairs(varying) do insert(builder, ", var" .. i .. "_" .. j) end
-	end
-
-	for i, _ in pairs(uniform) do insert(builder, ", uniform_" .. i) end
-	insert(builder, ")\n")
-end
-
 local function buildPixel(builder, varying, uniform, str)
 	insert(builder, "pixel(x, y")
 	for i, count in pairs(varying) do
@@ -64,12 +58,12 @@ local function buildPixel(builder, varying, uniform, str)
 			insert(builder, "}")
 		end
 	end
-	for i, _ in pairs(uniform) do insert(builder, ", uniform_" .. i) end
+	for i = 1, uniform do insert(builder, ", uniform_" .. i) end
 	insert(builder, ")\n")
 end
 
 local function line(dimensions, varying, uniform)
-	varying, uniform = varying or {}, uniform or {}
+	varying, uniform = varying or {}, uniform or 0
 	local builder = {}
 
 	local width, height, size
@@ -88,26 +82,20 @@ local function line(dimensions, varying, uniform)
 		insert(builder, str)
 	end
 
-	local function insertWith(str, ...)
-		local rep = {...}
-		str = str:gsub("%$(%d%d-)", function(index) return rep[tonumber(index)] end)
-		insert(builder, str)
-	end
-
 	insert(builder, "return function")
 	local limited = genLimited(varying)
-	buildHeader(builder, varying, uniform, 2)
+	declaration(builder, {"x", "y"}, varying, uniform, 2)
 
-	insertVars [[if (x1 < 1 and x2 < 1) or (x1 > ${width} and x2 > ${width}) or (y1 < 1 and y2 < 1) or (y1 > ${height} and y2 > ${height}) ]]
+	insertVars [[if (x_1 < 1 and x_2 < 1) or (x_1 > ${width} and x_2 > ${width}) or (y_1 < 1 and y_2 < 1) or (y_1 > ${height} and y_2 > ${height}) ]]
 	buildBounds(builder, limited, 2)
 
 	insert(builder, " then return end\n")
 
 	insert(builder, [[
-		x1, x2 = floor(x1), floor(x2)
-		y1, y2 = floor(y1), floor(y2)
+		x_1, x_2 = floor(x_1), floor(x_2)
+		y_1, y_2 = floor(y_1), floor(y_2)
 
-		local ndx, ndy = x2 - x1, y2 - y1
+		local ndx, ndy = x_2 - x_1, y_2 - y_1
 		local dx, dy = abs(ndx), abs(ndy)
 		local steep = dy > dx
 		if steep then
@@ -115,7 +103,7 @@ local function line(dimensions, varying, uniform)
 		end
 
 		local e = 2 * dy - dx
-		local x, y = x1, y1
+		local x, y = x_1, y_1
 
 		local signy, signx = 1, 1
 		if ndx < 0 then signx = -1 end
@@ -124,10 +112,10 @@ local function line(dimensions, varying, uniform)
 
 	for i, count in pairs(varying) do
 		if count == 1 then
-			insertWith("local var_$1, dvar_$1 = var1_$1, (var2_$1 - var1_$1) / dx\n", i)
+			insertWith(builder, "local var_$1, dvar_$1 = var1_$1, (var2_$1 - var1_$1) / dx\n", i)
 		else
 			for j = 1, count do
-				insertWith("local var_$1_$2 = var1_$1[$2] local dvar_$1_$2 = (var2_$1[$2] - var_$1_$2) / dx\n", i, j)
+				insertWith(builder, "local var_$1_$2 = var1_$1[$2] local dvar_$1_$2 = (var2_$1[$2] - var_$1_$2) / dx\n", i, j)
 			end
 		end
 	end
@@ -155,19 +143,19 @@ local function line(dimensions, varying, uniform)
 
 	for i, count in pairs(varying) do
 		if count == 1 then
-			insertWith("var_$1 = var_$1 + dvar_$1\n", i)
+			insertWith(builder, "var_$1 = var_$1 + dvar_$1\n", i)
 		else
 			for j = 1, count do
-			insertWith("var_$1_$2 = var_$1_$2 + dvar_$1_$2\n", i, j)
+			insertWith(builder, "var_$1_$2 = var_$1_$2 + dvar_$1_$2\n", i, j)
 			end
 		end
 	end
 
 	insert(builder, "end\n")
 
-	insert(builder, "pixel(x2, y2")
-	for i, count in pairs(varying) do insertWith(", var2_$1", i) end
-	for i, _ in pairs(uniform) do insertWith(", uniform_$1", i) end
+	insert(builder, "pixel(x_2, y_2")
+	for i, count in pairs(varying) do insertWith(builder, ", var2_$1", i) end
+	for i = 1, uniform do insertWith(builder, ", uniform_$1", i) end
 	insert(builder, ")\nend\n")
 
 	return concat(builder)
@@ -181,7 +169,7 @@ local function buildSwap(builder, varying, from, to)
 end
 
 local function triangle(dimensions, varying, uniform)
-	varying, uniform = varying or {}, uniform or {}
+	varying, uniform = varying or {}, uniform or 0
 	local builder = {}
 
 	local width, height, size
@@ -200,12 +188,6 @@ local function triangle(dimensions, varying, uniform)
 		insert(builder, str)
 	end
 
-	local function insertWith(str, ...)
-		local rep = {...}
-		str = str:gsub("%$(%d%d-)", function(index) return rep[tonumber(index)] end)
-		insert(builder, str)
-	end
-
 	local limited = genLimited(varying)
 
 	do -- Bottom triangle
@@ -213,34 +195,34 @@ local function triangle(dimensions, varying, uniform)
 		-- Precondition is that v2 and v3 perform the flat side and that v1.y < v2.y, v3.y.
 
 		insert(builder, "local bottom = function")
-		buildHeader(builder, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, varying, uniform, 3)
 
 		insert(builder, [[
-			local xStart, xEnd = x1, x1 + 0.5
-			local dy2, dy3 = y2 - y1, y3 - y1
-			local dx2, dx3 = (x2 - x1) / dy2, (x3 - x1) / dy3
+			local xStart, xEnd = x_1, x_1 + 0.5
+			local dy_2, dy_3 = y_2 - y_1, y_3 - y_1
+			local dx_2, dx_3 = (x_2 - x_1) / dy_2, (x_3 - x_1) / dy_3
 		]])
 
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("local varStart_$1, varEnd_$1 = var1_$1, var1_$1\n", i)
-				insertWith("local dVar2_$1, dVar3_$1 = (var2_$1 - var1_$1) / dy2, (var3_$1 - var1_$1) / dy3\n", i)
+				insertWith(builder, "local varStart_$1, varEnd_$1 = var1_$1, var1_$1\n", i)
+				insertWith(builder, "local dVar2_$1, dVar3_$1 = (var2_$1 - var1_$1) / dy_2, (var3_$1 - var1_$1) / dy_3\n", i)
 			else
 				for j = 1, count do
-					insertWith("local varStart_$1_$2 = var1_$1[$2] local varEnd_$1_$2 = varStart_$1_$2\n", i, j)
-					insertWith("local dVar2_$1_$2, dVar3_$1_$2 = (var2_$1[$2] - varStart_$1_$2) / dy2, (var3_$1[$2] - varStart_$1_$2) / dy3\n", i, j)
+					insertWith(builder, "local varStart_$1_$2 = var1_$1[$2] local varEnd_$1_$2 = varStart_$1_$2\n", i, j)
+					insertWith(builder, "local dVar2_$1_$2, dVar3_$1_$2 = (var2_$1[$2] - varStart_$1_$2) / dy_2, (var3_$1[$2] - varStart_$1_$2) / dy_3\n", i, j)
 				end
 			end
 		end
 
-		insert(builder, "\nif dx3 < dx2 then\ndx2, dx3 = dx3, dx2\n")
+		insert(builder, "\nif dx_3 < dx_2 then\ndx_2, dx_3 = dx_3, dx_2\n")
 
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("dVar2_$1, dVar3_$1 = dVar3_$1, dVar2_$1\n", i)
+				insertWith(builder, "dVar2_$1, dVar3_$1 = dVar3_$1, dVar2_$1\n", i)
 			else
 				for j = 1, count do
-					insertWith("dVar2_$1_$2, dVar3_$1_$2 = dVar3_$1_$2, dVar2_$1_$2\n", i, j)
+					insertWith(builder, "dVar2_$1_$2, dVar3_$1_$2 = dVar3_$1_$2, dVar2_$1_$2\n", i, j)
 				end
 			end
 		end
@@ -248,7 +230,7 @@ local function triangle(dimensions, varying, uniform)
 		insert(builder, "end\n\n")
 
 		insertVars [[
-			for y = y1, y2 do
+			for y = y_1, y_2 do
 				if y >= 1 and y <= ${height} then
 					for x = ceil(xStart), xEnd do
 						local t = (x - xStart) / (xEnd - xStart)
@@ -258,13 +240,13 @@ local function triangle(dimensions, varying, uniform)
 		buildPixel(builder, varying, uniform, "tInv * varStart_$ + t * varEnd_$")
 
 		insert(builder, "end\nend\n")
-		insert(builder, "xStart, xEnd = xStart + dx2, xEnd + dx3\n")
+		insert(builder, "xStart, xEnd = xStart + dx_2, xEnd + dx_3\n")
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("varStart_$1, varEnd_$1 = varStart_$1 + dVar2_$1, varEnd_$1 + dVar3_$1\n", i)
+				insertWith(builder, "varStart_$1, varEnd_$1 = varStart_$1 + dVar2_$1, varEnd_$1 + dVar3_$1\n", i)
 			else
 				for j = 1, count do
-					insertWith("varStart_$1, varEnd_$1 = varStart_$1 + dVar2_$1, varEnd_$1 + dVar3_$1\n", i .. "_" .. j)
+					insertWith(builder, "varStart_$1, varEnd_$1 = varStart_$1 + dVar2_$1, varEnd_$1 + dVar3_$1\n", i .. "_" .. j)
 				end
 			end
 		end
@@ -276,49 +258,49 @@ local function triangle(dimensions, varying, uniform)
 		-- Fills a triangle whose top side is perfectly horizontal
 		-- v1 and v2 are on the flat side, and v3.y > v1.y, v2.y
 		insert(builder, "local top = function")
-		buildHeader(builder, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, varying, uniform, 3)
 
 		insert(builder, [[
-			local xStart, xEnd = x3, x3 + 0.5
-			local dy1, dy2 = y3 - y1, y3 - y2
-			local dx1, dx2 = (x3 - x1) / dy1, (x3 - x2) / dy2
+			local xStart, xEnd = x_3, x_3 + 0.5
+			local dy_1, dy_2 = y_3 - y_1, y_3 - y_2
+			local dx_1, dx_2 = (x_3 - x_1) / dy_1, (x_3 - x_2) / dy_2
 		]])
 
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("local varStart_$1, varEnd_$1 = var3_$1, var3_$1\n", i)
-				insertWith("local dVar1_$1, dVar2_$1 = (var3_$1 - var1_$1) / dy1, (var3_$1 - var2_$1) / dy2\n", i)
+				insertWith(builder, "local varStart_$1, varEnd_$1 = var3_$1, var3_$1\n", i)
+				insertWith(builder, "local dVar1_$1, dVar2_$1 = (var3_$1 - var1_$1) / dy_1, (var3_$1 - var2_$1) / dy_2\n", i)
 			else
 				for j = 1, count do
-					insertWith("local varStart_$1_$2 = var3_$1[$2] local varEnd_$1_$2 = varStart_$1_$2\n", i, j)
-					insertWith("local dVar1_$1_$2, dVar2_$1_$2 = (varStart_$1_$2 - var1_$1[$2]) / dy1, (varStart_$1_$2 - var2_$1[$2]) / dy2\n", i, j)
+					insertWith(builder, "local varStart_$1_$2 = var3_$1[$2] local varEnd_$1_$2 = varStart_$1_$2\n", i, j)
+					insertWith(builder, "local dVar1_$1_$2, dVar2_$1_$2 = (varStart_$1_$2 - var1_$1[$2]) / dy_1, (varStart_$1_$2 - var2_$1[$2]) / dy_2\n", i, j)
 				end
 			end
 		end
 
-		insert(builder, "\nif dx1 < dx2 then\ndx1, dx2 = dx2, dx1\n")
+		insert(builder, "\nif dx_1 < dx_2 then\ndx_1, dx_2 = dx_2, dx_1\n")
 
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("dVar1_$1, dVar2_$1 = dVar2_$1, dVar1_$1\n", i)
+				insertWith(builder, "dVar1_$1, dVar2_$1 = dVar2_$1, dVar1_$1\n", i)
 			else
 				for j = 1, count do
-					insertWith("dVar1_$1_$2, dVar2_$1_$2 = dVar2_$1_$2, dVar1_$1_$2\n", i, j)
+					insertWith(builder, "dVar1_$1_$2, dVar2_$1_$2 = dVar2_$1_$2, dVar1_$1_$2\n", i, j)
 				end
 			end
 		end
 
 		insert(builder, "end\n\n")
 
-		insert(builder, "for y = y3, y1 + 1, -1 do\n")
+		insert(builder, "for y = y_3, y_1 + 1, -1 do\n")
 
-		insert(builder, "xStart, xEnd = xStart - dx1, xEnd - dx2\n")
+		insert(builder, "xStart, xEnd = xStart - dx_1, xEnd - dx_2\n")
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("varStart_$1, varEnd_$1 = varStart_$1 - dVar1_$1, varEnd_$1 - dVar2_$1\n", i)
+				insertWith(builder, "varStart_$1, varEnd_$1 = varStart_$1 - dVar1_$1, varEnd_$1 - dVar2_$1\n", i)
 			else
 				for j = 1, count do
-					insertWith("varStart_$1, varEnd_$1 = varStart_$1 - dVar1_$1, varEnd_$1 - dVar2_$1\n", i .. "_" .. j)
+					insertWith(builder, "varStart_$1, varEnd_$1 = varStart_$1 - dVar1_$1, varEnd_$1 - dVar2_$1\n", i .. "_" .. j)
 				end
 			end
 		end
@@ -336,75 +318,75 @@ local function triangle(dimensions, varying, uniform)
 
 	do -- Main Renderer
 		insert(builder, "return function")
-		buildHeader(builder, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, varying, uniform, 3)
 
-		insertVars [[if (x1 < 1 and x2 < 1) or (x1 > ${width} and x2 > ${width}) or (y1 < 1 and y2 < 1) or (y1 > ${height} and y2 > ${height}) ]]
+		insertVars [[if (x_1 < 1 and x_2 < 1) or (x_1 > ${width} and x_2 > ${width}) or (y_1 < 1 and y_2 < 1) or (y_1 > ${height} and y_2 > ${height}) ]]
 		buildBounds(builder, limited, 3)
 
 		insert(builder, " then return end\n")
 
-		insert(builder, "x1, x2, x3 = floor(x1), floor(x2), floor(x3)\ny1, y2, y3 = floor(y1), floor(y2), floor(y3)\n")
+		insert(builder, "x_1, x_2, x_3 = floor(x_1), floor(x_2), floor(x_3)\ny_1, y_2, y_3 = floor(y_1), floor(y_2), floor(y_3)\n")
 
-		insert(builder, "if y1 > y2 then\nx1, x2 = x2, x1\ny1, y2 = y2, y1\n")
+		insert(builder, "if y_1 > y_2 then\nx_1, x_2 = x_2, x_1\ny_1, y_2 = y_2, y_1\n")
 		buildSwap(builder, varying, 1, 2)
 		insert(builder, "end\n")
 
 		-- here v1 <= v2
-		insert(builder, "if y1 > y3 then\nx1, x3 = x3, x1\ny1, y3 = y3, y1\n")
+		insert(builder, "if y_1 > y_3 then\nx_1, x_3 = x_3, x_1\ny_1, y_3 = y_3, y_1\n")
 		buildSwap(builder, varying, 1, 3)
 		insert(builder, "end\n")
 
 		-- here v1.y <= v2.y and v1.y <= v3.y so test v2 vs. v3
-		insert(builder, "if y2 > y3 then\nx2, x3 = x3, x2\ny2, y3 = y3, y2\n")
+		insert(builder, "if y_2 > y_3 then\nx_2, x_3 = x_3, x_2\ny_2, y_3 = y_3, y_2\n")
 		buildSwap(builder, varying, 2, 3)
 		insert(builder, "end\n")
 
 		-- We really don't need to return, but tail call optimisation.
 		-- Though, I'm not sure it really helps
-		insert(builder, "if y2 == y3 then\n")
+		insert(builder, "if y_2 == y_3 then\n")
 		insert(builder, "return bottom")
-		buildHeader(builder, varying, uniform, 3)
-		insert(builder, "elseif y1 == y2 then\n")
+		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		insert(builder, "elseif y_1 == y_2 then\n")
 		insert(builder, "return top")
-		buildHeader(builder, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, varying, uniform, 3)
 
 		insert(builder, "else")
 		insert(builder, [[
-			local delta = (y2 - y1) / (y3 - y1)
-			local x = floor(x1 + delta * (x3 - x1))
+			local delta = (y_2 - y_1) / (y_3 - y_1)
+			local x = floor(x_1 + delta * (x_3 - x_1))
 		]])
 
 
 		for i, count in pairs(varying) do
 			if count == 1 then
-				insertWith("local var_$1 = var1_$1 + delta * (var3_$1 - var1_$1)\n", i)
+				insertWith(builder, "local var_$1 = var1_$1 + delta * (var3_$1 - var1_$1)\n", i)
 			else
-				insertWith("local var_$1 = {\n", i)
+				insertWith(builder, "local var_$1 = {\n", i)
 				for j = 1, count do
-					insertWith("var1_$1[$2] + delta * (var3_$1[$2] - var1_$1[$2]),\n", i, j)
+					insertWith(builder, "var1_$1[$2] + delta * (var3_$1[$2] - var1_$1[$2]),\n", i, j)
 				end
 				insert(builder, "}\n")
 			end
 		end
 
-	insert(builder, "bottom(x1, y1")
+	insert(builder, "bottom(x_1, y_1")
 	for j, _ in pairs(varying) do insert(builder, ", var1_" .. j) end
-	insert(builder, ", x2, y2")
+	insert(builder, ", x_2, y_2")
 	for j, _ in pairs(varying) do insert(builder, ", var2_" .. j) end
-	insert(builder, ", x, y2")
+	insert(builder, ", x, y_2")
 	for j, _ in pairs(varying) do insert(builder, ", var_" .. j) end
 
-	for i, _ in pairs(uniform) do insert(builder, ", uniform_" .. i) end
+	for i = 1, uniform do insert(builder, ", uniform_" .. i) end
 	insert(builder, ")\n")
 
-	insert(builder, "top(x2, y2")
+	insert(builder, "top(x_2, y_2")
 	for j, _ in pairs(varying) do insert(builder, ", var2_" .. j) end
-	insert(builder, ", x, y2")
+	insert(builder, ", x, y_2")
 	for j, _ in pairs(varying) do insert(builder, ", var_" .. j) end
-	insert(builder, ", x3, y3")
+	insert(builder, ", x_3, y_3")
 	for j, _ in pairs(varying) do insert(builder, ", var3_" .. j) end
 
-	for i, _ in pairs(uniform) do insert(builder, ", uniform_" .. i) end
+	for i = 1, uniform do insert(builder, ", uniform_" .. i) end
 	insert(builder, ")\n")
 	end
 

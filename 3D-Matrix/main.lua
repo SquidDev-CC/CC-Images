@@ -10,14 +10,14 @@ local verticies = {
 }
 
 local colours = {
-	{ 255, 0,   0,   100 },
-	{ 0,   255, 0,   100 },
-	{ 0,   0,   255, 100 },
-	{ 0,   255, 255, 100 },
-	{ 255, 255, 0,   100 },
-	{ 255, 0,   255, 100 },
-	{ 255, 128, 0,   100 },
-	{ 128, 255, 0,   100 },
+	{ 255, 0,   0,   255 },
+	{ 0,   255, 0,   255 },
+	{ 0,   0,   255, 255 },
+	{ 0,   255, 255, 255 },
+	{ 255, 255, 0,   255 },
+	{ 255, 0,   255, 255 },
+	{ 255, 128, 0,   255 },
+	{ 128, 255, 0,   255 },
 }
 
 local indexes = {
@@ -60,30 +60,10 @@ local function refreshMatrix()
 	graphics.clear()
 	graphics.clearColour({255, 0, 0, 0, 255})
 
-	local p = {}
-	for k, v in pairs(verticies) do
-		p[k] = project(matrix.vector(mvp, v))
-	end
-
-	local sorted = {}
-	for i, group in pairs(indexes) do
-		local a, b, c = p[group[1]], p[group[2]], p[group[3]]
-		sorted[i] = {group, a[3] + b[3] + c[3]}
-	end
-	table.sort(sorted, function(a, b) return a[2] > b[2] end)
-	runner.profile("Prepare", clock() - start)
-
-	start = clock()
-	for _, group in pairs(sorted) do
-		group = group[1]
-		draw(p, group, colours[group[4]])
-	end
-	runner.profile("Drawing", clock() - start)
-
-	local conts = {}
-	for k, v in pairs(p) do
-		conts[k*2-1] = string.format("%g, %g, %g, %g => ", unpack(v))
-		conts[k*2] = string.format("%g, %g, %g, %g", unpack(matrix.vector(view, verticies[k])))
+	for _, tri in pairs(indexes) do
+		graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[2]], {}, colours[tri[4]])
+		graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[3]], {}, colours[tri[4]])
+		graphics.clippedLine(mvp, verticies[tri[2]], {}, verticies[tri[3]], {}, colours[tri[4]])
 	end
 
 	return conts

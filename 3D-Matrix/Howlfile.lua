@@ -39,10 +39,26 @@ do -- Matrix
 		:Produces("build/matrix4x4.lua")
 end
 
+do -- Graphics gen
+	local graphics = Dependencies()
+
+	graphics:File "generation/buffer.lua" :Name "buffer"
+	graphics:File "generation/ccBuffer.lua" :Name "ccBuffer"
+	graphics:File "generation/clip.lua" :Name "clip" :Depends { "utils", "clip_lib" }
+	graphics:File "generation/graphics.lua" :Name "graphics" :Depends { "utils" }
+	graphics:File "generation/project.lua" :Name "project" :Depends { "utils" }
+
+	graphics:File "generation/utils.lua" :Name "utils" :Export(false)
+	graphics:Resource "generation/lib/clip.lua" :Name "clip_lib" :Export(false)
+
+	Tasks:Combine("graphics", graphics, "build/generator.lua")
+		:Description "Graphics generation"
+end
+
 do -- Main Script
 	local main = Dependencies()
 	main:File "../Utils/Colors.lua" :Name "colors"
-	main:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
+	main:File "build/graphics.lua"  :Name "graphics" :Depends { "colors", "matrix" }
 	main:File "build/matrix4x4.lua" :Name "matrix"
 	main:File "tools/transform.lua" :Name "transform"
 	main:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
@@ -54,29 +70,37 @@ do -- Main Script
 	local insert, concat = table.insert, table.concat
 	Tasks:AddTask(".mainGraphics", {}, function()
 		local builder = {}
-		local buffer = dofile(File "generation/buffer.lua")
-		local graphics = dofile(File "generation/graphics.lua")
+		local graphics = dofile(File "build/generator.lua")
 
 		insert(builder, "local width, height if term then width, height = term.getSize() else width, height = 400, 300 end\n")
 		insert(builder, "local buffer = (function(...)\n")
-		insert(builder, buffer(true, false))
+		insert(builder, graphics.buffer(true, false))
 		insert(builder, "\nend)(width, height)\n")
 
 		insert(builder, "buffer.line = (function(...)\n")
-		insert(builder, graphics.line(nil, {{-1, 1}}, {4}))
+		insert(builder, graphics.graphics.line(nil, {{-1, 1}}, 1))
 		insert(builder, "\nend)(buffer.pixel, width, height)\n")
 
 		insert(builder, "buffer.lineBlended = (function(...)\n")
-		insert(builder, graphics.line(nil, {{-1, 1}, 4}))
+		insert(builder, graphics.graphics.line(nil, {{-1, 1}, 4}))
 		insert(builder, "\nend)(buffer.pixel, width, height)\n")
 
 		insert(builder, "buffer.triangle = (function(...)\n")
-		insert(builder, graphics.triangle(nil, {{-1, 1}}, {4}))
+		insert(builder, graphics.graphics.triangle(nil, {{-1, 1}}, 1))
 		insert(builder, "\nend)(buffer.pixel, width, height)\n")
 
 		insert(builder, "buffer.triangleBlended = (function(...)\n")
-		insert(builder, graphics.triangle(nil, {{-1, 1}, 4}))
+		insert(builder, graphics.graphics.triangle(nil, {{-1, 1}, 4}))
 		insert(builder, "\nend)(buffer.pixel, width, height)\n")
+
+		insert(builder, "local project = (function(...)\n")
+		insert(builder, graphics.project.line(nil, 1))
+		insert(builder, "\nend)(buffer.line, width, height)\n")
+
+		insert(builder, "local l = buffer.line\n")
+		insert(builder, "buffer.clippedLine = (function(...)\n")
+		insert(builder, graphics.clip.line({4}, 1))
+		insert(builder, "return lineComplete\nend)(project, matrix.vector)\n")
 
 		insert(builder, "return buffer\n")
 
@@ -84,6 +108,7 @@ do -- Main Script
 		handle.write(concat(builder))
 		handle.close()
 	end)
+		:Requires "build/generator.lua"
 		:Produces("build/graphics.lua")
 		:Description("Basic graphics package")
 end
