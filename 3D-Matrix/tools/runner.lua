@@ -100,13 +100,17 @@ local function run(fps)
 			end
 		end
 
+		local debug
 		function love.draw()
 			if changed then
-				update()
+				debug = update()
 				changed = false
 			end
 			graphics.love(love)
 			graphics.loveDepth(love, 0, height)
+			if debug then
+				love.graphics.printf(table.concat(debug, "\n"), width, 0, 800 - width)
+			end
 		end
 	else
 		error("Requires running in Silica or Love")

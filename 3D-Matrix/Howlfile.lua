@@ -11,7 +11,7 @@ do -- Generation files
 		:Description "Matrix codegen"
 end
 
-do -- Generated files
+do -- Matrix
 	local insert, concat = table.insert, table.concat
 
 	Tasks:AddTask("matrix4x4", {}, function()
@@ -37,15 +37,29 @@ do -- Generated files
 	end)
 		:Description("4x4 and 4x1 matrix multiplication")
 		:Produces("build/matrix4x4.lua")
+end
 
-	Tasks:AddTask("graphics", {}, function()
+do -- Main Script
+	local main = Dependencies()
+	main:File "../Utils/Colors.lua" :Name "colors"
+	main:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
+	main:File "build/matrix4x4.lua" :Name "matrix"
+	main:File "tools/transform.lua" :Name "transform"
+	main:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
+	main:Main "main.lua" :Depends {"graphics", "matrix", "transform", "runner"}
+
+	Tasks:Combine("main", main, "build/main.lua")
+		:Description "Example program"
+
+	local insert, concat = table.insert, table.concat
+	Tasks:AddTask(".mainGraphics", {}, function()
 		local builder = {}
 		local buffer = dofile(File "generation/buffer.lua")
 		local graphics = dofile(File "generation/graphics.lua")
 
 		insert(builder, "local width, height if term then width, height = term.getSize() else width, height = 400, 300 end\n")
 		insert(builder, "local buffer = (function(...)\n")
-		insert(builder, buffer(true, true))
+		insert(builder, buffer(true, false))
 		insert(builder, "\nend)(width, height)\n")
 
 		insert(builder, "buffer.line = (function(...)\n")
@@ -74,19 +88,6 @@ do -- Generated files
 		:Description("Basic graphics package")
 end
 
-do -- Main Script
-	local main = Dependencies()
-	main:File "../Utils/Colors.lua" :Name "colors"
-	main:File "build/graphics.lua"  :Name "graphics" :Depends "colors"
-	main:File "build/matrix4x4.lua" :Name "matrix"
-	main:File "tools/transform.lua" :Name "transform"
-	main:File "tools/runner.lua"    :Name "runner"   :Depends { "graphics", "matrix" }
-	main:Main "main.lua" :Depends {"graphics", "matrix", "transform", "runner"}
-
-	Tasks:Combine("main", main, "build/main.lua")
-		:Description "Example program"
-end
-
 do -- Cubic
 	local cubic = Dependencies()
 	cubic:File "../Utils/Colors.lua" :Name "colors"
@@ -107,7 +108,7 @@ do -- Cubic
 		:Description "Cubic"
 
 	local insert, concat = table.insert, table.concat
-	Tasks:AddTask("cubicGraphics", {}, function()
+	Tasks:AddTask(".cubicGraphics", {}, function()
 		local builder = {}
 		local buffer = dofile(File "generation/ccBuffer.lua")
 		local graphics = dofile(File "generation/graphics.lua")

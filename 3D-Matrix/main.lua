@@ -79,6 +79,14 @@ local function refreshMatrix()
 		draw(p, group, colours[group[4]])
 	end
 	runner.profile("Drawing", clock() - start)
+
+	local conts = {}
+	for k, v in pairs(p) do
+		conts[k*2-1] = string.format("%g, %g, %g, %g => ", unpack(v))
+		conts[k*2] = string.format("%g, %g, %g, %g", unpack(matrix.vector(view, verticies[k])))
+	end
+
+	return conts
 end
 
 local rotSpeed, speed = 0.01, 0.1
