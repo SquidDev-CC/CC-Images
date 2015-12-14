@@ -84,7 +84,7 @@ local function line(dimensions, varying, uniform)
 
 	insert(builder, "return function")
 	local limited = genLimited(varying)
-	declaration(builder, {"x", "y"}, varying, uniform, 2)
+	declaration(builder, {"x", "y"}, #varying, uniform, 2)
 
 	insertVars [[if (x_1 < 1 and x_2 < 1) or (x_1 > ${width} and x_2 > ${width}) or (y_1 < 1 and y_2 < 1) or (y_1 > ${height} and y_2 > ${height}) ]]
 	buildBounds(builder, limited, 2)
@@ -195,7 +195,7 @@ local function triangle(dimensions, varying, uniform)
 		-- Precondition is that v2 and v3 perform the flat side and that v1.y < v2.y, v3.y.
 
 		insert(builder, "local bottom = function")
-		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, #varying, uniform, 3)
 
 		insert(builder, [[
 			local xStart, xEnd = x_1, x_1 + 0.5
@@ -258,7 +258,7 @@ local function triangle(dimensions, varying, uniform)
 		-- Fills a triangle whose top side is perfectly horizontal
 		-- v1 and v2 are on the flat side, and v3.y > v1.y, v2.y
 		insert(builder, "local top = function")
-		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, #varying, uniform, 3)
 
 		insert(builder, [[
 			local xStart, xEnd = x_3, x_3 + 0.5
@@ -318,7 +318,7 @@ local function triangle(dimensions, varying, uniform)
 
 	do -- Main Renderer
 		insert(builder, "return function")
-		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, #varying, uniform, 3)
 
 		insertVars [[if (x_1 < 1 and x_2 < 1) or (x_1 > ${width} and x_2 > ${width}) or (y_1 < 1 and y_2 < 1) or (y_1 > ${height} and y_2 > ${height}) ]]
 		buildBounds(builder, limited, 3)
@@ -345,10 +345,10 @@ local function triangle(dimensions, varying, uniform)
 		-- Though, I'm not sure it really helps
 		insert(builder, "if y_2 == y_3 then\n")
 		insert(builder, "return bottom")
-		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, #varying, uniform, 3)
 		insert(builder, "elseif y_1 == y_2 then\n")
 		insert(builder, "return top")
-		declaration(builder, {"x", "y"}, varying, uniform, 3)
+		declaration(builder, {"x", "y"}, #varying, uniform, 3)
 
 		insert(builder, "else")
 		insert(builder, [[

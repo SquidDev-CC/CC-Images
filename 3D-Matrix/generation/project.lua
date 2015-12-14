@@ -14,7 +14,7 @@ local function line(dimensions, uniform)
 	end
 
 	insert(builder, "return function(")
-	utils.declaration(builder, {"ver", "data"}, {}, uniform, 2)
+	utils.declaration(builder, {"ver", "data"}, 0, uniform, 2)
 	insert(builder, ")\n")
 
 	insert(builder, "return line(")

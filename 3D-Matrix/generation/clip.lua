@@ -15,7 +15,7 @@ local function clipLine(builder)
 end
 
 local function line(varying, uniform)
-	varying, uniform = varying or {}, uniform or 0
+	varying, uniform = varying or 0, uniform or 0
 	local builder = {}
 
 	local width, height
@@ -30,17 +30,12 @@ local function line(varying, uniform)
 		-- @tparam matrix ver2
 		]])
 		insert(builder, "local function interpolate(")
-		utils.declaration(builder, {"ver", "data"}, {}, 0, 2)
+		utils.declaration(builder, {"ver", "data"}, 0, 0, 2)
 		insert(builder, ", t)\n")
 
 		insert(builder, "local x, y, z, w = ver_1[1], ver_1[2], ver_1[3], ver_1[4]\n")
-		for i, count in pairs(varying) do
+		for i = 1, varying do
 			utils.insertWith(builder, "local var1_$1, var2_$1 = data_1[$1], data_2[$1]\n", i)
-			if count ~= 1 then
-				for j = 1, count do
-					utils.insertWith(builder, "local var1_$1_$2 = var1_$1[$2]\n", i, j)
-				end
-			end
 		end
 
 		insert(builder, "local newW = w + (ver_2[4] - w) * t\n")
@@ -52,19 +47,12 @@ local function line(varying, uniform)
 			(y + (ver_2[2] - y) * t) * inv,
 			(z + (ver_2[3] - z) * t) * inv,
 			newW
-		},
-		{
 		]])
 
-		for i, count in pairs(varying) do
-			if count == 1 then
+		if varying > 0 then
+			insert(builder, "}, {")
+			for i = 1, varying do
 				utils.insertWith(builder, "var1_$1 + (var2_$1 - var1_$1) * t,\n", i)
-			else
-				insert(builder, "{\n")
-				for j = 1, count do
-					utils.insertWith(builder, "var1_$1_$2 + (var2_$1[$2] - var1_$1_$2) * t,\n", i, j)
-				end
-				insert(builder, "},\n")
 			end
 		end
 
@@ -77,11 +65,11 @@ local function line(varying, uniform)
 		-- but using a parametric equation and no loop
 		]])
 		insert(builder, "local function line(")
-		utils.declaration(builder, {"trans", "clip", "proj", "data"}, {}, uniform, 2)
+		utils.declaration(builder, {"trans", "clip", "proj", "data"}, 0, uniform, 2)
 		insert(builder, ")\n")
 
 		insert(builder, "if clip_1[1] and clip_2[1] then return drawLine(")
-		utils.declaration(builder, {"proj", "data"}, {}, uniform, 2)
+		utils.declaration(builder, {"proj", "data"}, 0, uniform, 2)
 		insert(builder, ")\n")
 
 		insert(builder, "elseif\n")
@@ -113,14 +101,14 @@ local function line(varying, uniform)
 		insert(builder, "local nproj_1, ndata_1 = interpolate(trans_1, data_1, trans_2, data_2, tmin)\n")
 		insert(builder, "local nproj_2, ndata_2 = interpolate(trans_1, data_1, trans_2, data_2, tmax)\n")
 		insert(builder, "return drawLine(nproj_1, ndata_1, nproj_2, ndata_2")
-		utils.declaration(builder, {}, {}, uniform, 2)
+		utils.declaration(builder, {}, 0, uniform, 2)
 
 		insert(builder, ")\nend\nend\n")
 	end
 
 	do -- Nice line
 		insert(builder, "local function lineComplete(matrix, ")
-		utils.declaration(builder, {"vertex", "data"}, {}, uniform, 2)
+		utils.declaration(builder, {"vertex", "data"}, 0, uniform, 2)
 		insert(builder, ")\n")
 		insert(builder, [[
 			local trans_1, clip_1, proj_1 = transform(vertex_1, matrix)
@@ -128,7 +116,7 @@ local function line(varying, uniform)
 		]])
 
 		insert(builder, "return line(")
-		utils.declaration(builder, {"trans", "clip", "proj", "data"}, {}, uniform, 2)
+		utils.declaration(builder, {"trans", "clip", "proj", "data"}, 0, uniform, 2)
 		insert(builder, ")\nend\n")
 	end
 

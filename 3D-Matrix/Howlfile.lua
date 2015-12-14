@@ -99,7 +99,7 @@ do -- Main Script
 
 		insert(builder, "local l = buffer.line\n")
 		insert(builder, "buffer.clippedLine = (function(...)\n")
-		insert(builder, graphics.clip.line({4}, 1))
+		insert(builder, graphics.clip.line(1, 1))
 		insert(builder, "return lineComplete\nend)(project, matrix.vector)\n")
 
 		insert(builder, "return buffer\n")

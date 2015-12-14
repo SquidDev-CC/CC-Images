@@ -7,7 +7,7 @@ local function declaration(builder, named, varying, uniform, nargs)
 			if comma then insert(builder, ", ") else comma = true end
 			insert(builder, name .. "_" .. i)
 		end
-		for j, _ in pairs(varying) do
+		for j = 1, varying do
 			if comma then insert(builder, ", ") else comma = true end
 			insert(builder, "var" .. i .. "_" .. j)
 		end
