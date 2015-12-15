@@ -14,6 +14,42 @@ local function clipLine(builder)
 	]])
 end
 
+local function writeInterpolate(builder, varying)
+	insert(builder, [[
+	--- Interpolate between to points
+	-- @tpram matrix ver1 The first vertex
+	-- @tparam matrix ver2
+	]])
+	insert(builder, "local function interpolate(")
+	utils.declaration(builder, {"ver", "data"}, 0, 0, 2)
+	insert(builder, ", t)\n")
+
+	insert(builder, "local x, y, z, w = ver_1[1], ver_1[2], ver_1[3], ver_1[4]\n")
+	for i = 1, varying do
+		utils.insertWith(builder, "local var1_$1, var2_$1 = data_1[$1], data_2[$1]\n", i)
+	end
+
+	insert(builder, "local newW = w + (ver_2[4] - w) * t\n")
+	insert(builder, "local inv = 1 / newW\n")
+
+	insert(builder, [[
+	return {
+		(x + (ver_2[1] - x) * t) * inv,
+		(y + (ver_2[2] - y) * t) * inv,
+		(z + (ver_2[3] - z) * t) * inv,
+		newW
+	]])
+
+	if varying > 0 then
+		insert(builder, "}, {")
+		for i = 1, varying do
+			utils.insertWith(builder, "var1_$1 + (var2_$1 - var1_$1) * t,\n", i)
+		end
+	end
+
+	insert(builder, "}\nend\n")
+end
+
 local function line(varying, uniform)
 	varying, uniform = varying or 0, uniform or 0
 	local builder = {}
@@ -23,41 +59,7 @@ local function line(varying, uniform)
 
 	insert(builder, clip_lib)
 
-	do -- Line interpolation
-		insert(builder, [[
-		--- Interpolate between to points
-		-- @tpram matrix ver1 The first vertex
-		-- @tparam matrix ver2
-		]])
-		insert(builder, "local function interpolate(")
-		utils.declaration(builder, {"ver", "data"}, 0, 0, 2)
-		insert(builder, ", t)\n")
-
-		insert(builder, "local x, y, z, w = ver_1[1], ver_1[2], ver_1[3], ver_1[4]\n")
-		for i = 1, varying do
-			utils.insertWith(builder, "local var1_$1, var2_$1 = data_1[$1], data_2[$1]\n", i)
-		end
-
-		insert(builder, "local newW = w + (ver_2[4] - w) * t\n")
-		insert(builder, "local inv = 1 / newW\n")
-
-		insert(builder, [[
-		return {
-			(x + (ver_2[1] - x) * t) * inv,
-			(y + (ver_2[2] - y) * t) * inv,
-			(z + (ver_2[3] - z) * t) * inv,
-			newW
-		]])
-
-		if varying > 0 then
-			insert(builder, "}, {")
-			for i = 1, varying do
-				utils.insertWith(builder, "var1_$1 + (var2_$1 - var1_$1) * t,\n", i)
-			end
-		end
-
-		insert(builder, "}\nend\n")
-	end
+	writeInterpolate(builder, varying)
 
 	do -- Line drawing
 		insert(builder, [[
@@ -123,6 +125,146 @@ local function line(varying, uniform)
 	return concat(builder)
 end
 
+local directions = {
+	{'x', '-', '', 1, -1},
+	{'x', '', '-', 1, 1},
+	{'y', '-', '', 2, -1},
+	{'y', '', '-', 2, 1},
+	{'z', '-', '', 3, -1},
+	{'z', '', '-', 3, 1},
+}
+
+for _, direction in pairs(directions) do
+	if direction[5] == -1 then
+		direction[6] = direction[1] .. 'min'
+	else
+		direction[6] = direction[1] .. 'max'
+	end
+end
+local function triangle(varying, uniform)
+	varying, uniform = varying or 0, uniform or 0
+	local builder = {}
+
+	local width, height
+	insert(builder, "local drawTriangle, vector = ...\n")
+	insert(builder, clip_lib)
+
+	writeInterpolate(builder, varying)
+
+	do -- Clip functions
+		local template = [[
+			local function clipTriangle_$1(vec1, vec2)
+				local d = vec1[$4] - vec2[$4]
+				local w = vec1[4]
+				local den = $3d + (w - vec2[4])
+				if den == 0 then
+					return 0
+				else
+					return ($2vec1[$4] - w) / den
+				end
+			end
+		]]
+		for _, direction in pairs(directions) do
+			utils.insertWith(builder, template, direction[6], direction[2], direction[3], direction[4])
+		end
+	end
+
+	do -- Main drawer
+		insert(builder, "local function triangle(")
+		utils.declaration(builder, {"trans", "clip", "proj", "data"}, 0, uniform, 3)
+		insert(builder, ", direction)\n")
+
+		-- Basic case: All items are clipped
+		insert(builder, "if clip_1[1] and clip_2[1] and clip_3[1] then drawTriangle(")
+		utils.declaration(builder, {"proj", "data"}, 0, uniform, 3)
+		insert(builder, ") end\n")
+
+		for i = 1, 3 do utils.insertWith(builder, "local c$1_x, c$1_y, c$1_z = clip_$1[2], clip_$1[3], clip_$1[4]\n", i) end
+
+		-- If all items are clipped on the same side then it is safe to ignore them
+		insert(builder, [[if
+			(c1_x ~= 0 and c1_x == c2_x and c1_x == c3_x) or
+			(c1_y ~= 0 and c1_y == c2_y and c1_y == c3_y) or
+			(c1_z ~= 0 and c1_z == c2_z and c1_z == c3_z)
+		then print("Clipping") print(c1_x, c2_x, c3_x, c1_y, c2_y, c3_y, c1_z, c2_z, c3_z) return end]])
+
+		insert(builder, "\ndirection = direction or 0\n")
+
+		insert(builder, "local count, func, index = 0\n")
+
+		insert(builder, "repeat\n") -- Emulated goto
+		for index, direction in pairs(directions) do
+			--[[
+				The logic here is a bit odd, but I think it holds.
+				Basically we want three elements, with a count of
+					0 => This can be anything
+					1 => [ clipped, other 1, other 2]
+					2 => [ clipped 1, clipped 2, other ]
+					3 => Cannot happen
+			]]
+
+			utils.insertWith(builder, [[
+			if direction < $1 then
+				if c1_$2 == $3 then
+					count, index = 1, 1
+				end
+				if c2_$2 == $3 then
+					if count == 0 then
+						count, index = 1, 1
+					else
+						count, index = 2, 3 -- Other index is 3 as 1 and 2 are matched
+					end
+				end
+				if c3_$2 == $3 then
+					if count == 0 then
+						count, index = 1, 3
+					else
+						count = 2
+						if index == 1 then index = 2 else index = 1 end
+					end
+				end
+
+				if count ~= 0 then
+					func = clip_$4
+					direction = $1
+					break
+				else
+					count = 0
+				end
+			end
+			]], index, direction[1], direction[5], direction[6])
+		end
+
+		insert(builder, "until false\n")
+		insert(builder, "print(count, index)")
+
+		local temp = {}
+		for i = 1, uniform do temp[i] = "uniform_" .. i .. ", " end
+		utils.insertWith(builder, triangle_lib, concat(temp))
+
+		insert(builder, "\nend\n")
+	end
+
+
+	do -- Nice triangle
+		insert(builder, "local function triangleComplete(matrix, ")
+		utils.declaration(builder, {"vertex", "data"}, 0, uniform, 3)
+		insert(builder, ")\n")
+		insert(builder, [[
+			local trans_1, clip_1, proj_1 = transform(vertex_1, matrix)
+			local trans_2, clip_2, proj_2 = transform(vertex_2, matrix)
+			local trans_3, clip_3, proj_3 = transform(vertex_3, matrix)
+		]])
+
+		insert(builder, "triangle(")
+		utils.declaration(builder, {"trans", "clip", "proj", "data"}, 0, uniform, 3)
+		insert(builder, ")\nend\n")
+	end
+
+	return concat(builder)
+end
+
 return {
-	line = line
+	line = line,
+	triangle = triangle,
 }

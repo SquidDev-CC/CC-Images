@@ -61,9 +61,15 @@ local function refreshMatrix()
 	graphics.clearColour({255, 0, 0, 0, 255})
 
 	for _, tri in pairs(indexes) do
-		graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[2]], {}, colours[tri[4]])
-		graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[3]], {}, colours[tri[4]])
-		graphics.clippedLine(mvp, verticies[tri[2]], {}, verticies[tri[3]], {}, colours[tri[4]])
+		-- graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[2]], {}, colours[tri[4]])
+		-- graphics.clippedLine(mvp, verticies[tri[1]], {}, verticies[tri[3]], {}, colours[tri[4]])
+		-- graphics.clippedLine(mvp, verticies[tri[2]], {}, verticies[tri[3]], {}, colours[tri[4]])
+		graphics.clippedTriangle(mvp,
+			verticies[tri[1]], {},
+			verticies[tri[2]], {},
+			verticies[tri[3]], {},
+			colours[tri[4]]
+		)
 	end
 
 	return conts

@@ -44,12 +44,13 @@ do -- Graphics gen
 
 	graphics:File "generation/buffer.lua" :Name "buffer"
 	graphics:File "generation/ccBuffer.lua" :Name "ccBuffer"
-	graphics:File "generation/clip.lua" :Name "clip" :Depends { "utils", "clip_lib" }
+	graphics:File "generation/clip.lua" :Name "clip" :Depends { "utils", "clip_lib", "triangle_lib" }
 	graphics:File "generation/graphics.lua" :Name "graphics" :Depends { "utils" }
 	graphics:File "generation/project.lua" :Name "project" :Depends { "utils" }
 
 	graphics:File "generation/utils.lua" :Name "utils" :Export(false)
 	graphics:Resource "generation/lib/clip.lua" :Name "clip_lib" :Export(false)
+	graphics:Resource "generation/lib/triangle.lua" :Name "triangle_lib" :Export(false)
 
 	Tasks:Combine("graphics", graphics, "build/generator.lua")
 		:Description "Graphics generation"
@@ -93,14 +94,28 @@ do -- Main Script
 		insert(builder, graphics.graphics.triangle(nil, {{-1, 1}, 4}))
 		insert(builder, "\nend)(buffer.pixel, width, height)\n")
 
-		insert(builder, "local project = (function(...)\n")
+		insert(builder, "local projectLine = (function(...)\n")
 		insert(builder, graphics.project.line(nil, 1))
 		insert(builder, "\nend)(buffer.line, width, height)\n")
 
-		insert(builder, "local l = buffer.line\n")
 		insert(builder, "buffer.clippedLine = (function(...)\n")
-		insert(builder, graphics.clip.line(1, 1))
-		insert(builder, "return lineComplete\nend)(project, matrix.vector)\n")
+		insert(builder, graphics.clip.line(0, 1))
+		insert(builder, "return lineComplete\nend)(projectLine, matrix.vector)\n")
+
+		insert(builder, [[
+			local l = buffer.line
+			local function pTri(x1, y1, z1, x2, y2, z2, x3, y3, z3, colour)
+				l(x1, y1, z1, x2, y2, z3, colour)
+				l(x1, y1, z1, x3, y3, z3, colour)
+				l(x2, y2, z2, x3, y3, z3, colour)
+			end
+		]])
+		insert(builder, "local projectTriangle = (function(...)\n")
+		insert(builder, graphics.project.triangle(nil, 1))
+		insert(builder, "\nend)(pTri, width, height)\n")
+		insert(builder, "buffer.clippedTriangle = (function(...)\n")
+		insert(builder, graphics.clip.triangle(0, 1))
+		insert(builder, "return triangleComplete\nend)(projectTriangle, matrix.vector)\n")
 
 		insert(builder, "return buffer\n")
 
