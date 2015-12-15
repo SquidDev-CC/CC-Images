@@ -38,8 +38,7 @@ local function makeClip(x, y, z, w)
 	return valid, xC, yC, zC
 end
 
-local function transform(vertex, matrix)
-	local trans = vector(matrix, vertex)
+local function clipProject(trans)
 	local valid, xC, yC, zC = makeClip(trans[1], trans[2], trans[3], trans[4])
 
 	local clip = {valid, xC, yC, zC}
@@ -51,4 +50,8 @@ local function transform(vertex, matrix)
 	end
 
 	return trans, clip, projected
+end
+
+local function transform(vertex, matrix)
+	return clipProject(vector(matrix, vertex))
 end

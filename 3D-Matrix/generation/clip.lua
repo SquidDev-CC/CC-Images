@@ -175,7 +175,7 @@ local function triangle(varying, uniform)
 		insert(builder, ", direction)\n")
 
 		-- Basic case: All items are clipped
-		insert(builder, "if clip_1[1] and clip_2[1] and clip_3[1] then drawTriangle(")
+		insert(builder, "if clip_1[1] and clip_2[1] and clip_3[1] then return drawTriangle(")
 		utils.declaration(builder, {"proj", "data"}, 0, uniform, 3)
 		insert(builder, ") end\n")
 
@@ -186,7 +186,7 @@ local function triangle(varying, uniform)
 			(c1_x ~= 0 and c1_x == c2_x and c1_x == c3_x) or
 			(c1_y ~= 0 and c1_y == c2_y and c1_y == c3_y) or
 			(c1_z ~= 0 and c1_z == c2_z and c1_z == c3_z)
-		then print("Clipping") print(c1_x, c2_x, c3_x, c1_y, c2_y, c3_y, c1_z, c2_z, c3_z) return end]])
+		then return end]])
 
 		insert(builder, "\ndirection = direction or 0\n")
 
@@ -225,7 +225,7 @@ local function triangle(varying, uniform)
 				end
 
 				if count ~= 0 then
-					func = clip_$4
+					func = clipTriangle_$4
 					direction = $1
 					break
 				else
@@ -235,8 +235,11 @@ local function triangle(varying, uniform)
 			]], index, direction[1], direction[5], direction[6])
 		end
 
-		insert(builder, "until false\n")
-		insert(builder, "print(count, index)")
+		insert(builder, [[
+			local msg = 'No remaining clips at direction == ' .. direction .. ' => ' .. table.concat(trans_1, ", ") .. " | " .. table.concat(trans_2, ", ") .. " | " .. table.concat(trans_3, ", ")
+			error(msg)
+		]])
+		insert(builder, "until true\n")
 
 		local temp = {}
 		for i = 1, uniform do temp[i] = "uniform_" .. i .. ", " end
@@ -256,7 +259,7 @@ local function triangle(varying, uniform)
 			local trans_3, clip_3, proj_3 = transform(vertex_3, matrix)
 		]])
 
-		insert(builder, "triangle(")
+		insert(builder, "return triangle(")
 		utils.declaration(builder, {"trans", "clip", "proj", "data"}, 0, uniform, 3)
 		insert(builder, ")\nend\n")
 	end
