@@ -5,7 +5,7 @@ end
 
 local matrix = require "matrix"
 local transform = require "transform"
-
+local clip = require "clip"
 
 local graphics = peripheral.wrap("left")
 local sensor = peripheral.wrap("right")
@@ -25,32 +25,28 @@ local function compose(...)
 end
 
 local function normalise(coord)
-	coord[1] = (coord[1] + 1) * width / 2
-	coord[2] = (coord[2] + 1) * height / 2
-	return coord
+	return {
+		(coord[1] + 1) * width / 2,
+		(coord[2] + 1) * height / 2,
+	}
 end
 
 local function rgb(r, g, b)
 	return r * 256^2 + g * 256 + b
 end
 
-local abs = math.abs
-local function project(coord)
-	if abs(coord[4]) < 1e-2 then
-		local orig = coord[4]
-		if coord[4] < 0 then
-			coord[4] = -1e-2
-		else
-			coord[4] = 1e-2
-		end
-		-- debug("Resetting a coordinate", coord[1], coord[2], coord[3], coord[4], orig)
-	end
-	coord[1] = coord[1] / coord[4]
-	coord[2] = coord[2] / coord[4]
+local draw = clip(
+	function(a, color) graphics.addPoint(normalise(a), color).setSize(5) end,
+	function(a, b, color) graphics.addLine(normalise(a), normalise(b), color) end,
+	function(a, b, c, color) graphics.addTriangle(normalise(a), normalise(b), normalise(c), color) end,
+	matrix.multiply1
+)
 
-	return normalise(coord)
+function draw.triangleOutline(m, a, b, c, col)
+	draw.line(m, a, b, col)
+	draw.line(m, a, c, col)
+	draw.line(m, b, c, col)
 end
-
 
 local rotX, rotY = 0, 0
 local x, y, z = 0, 0, 8
@@ -69,7 +65,6 @@ while true do
 	z = initialPosition.z - pData.position.z
 
 	local view = compose(
-		transform.scale(1/20, 1/20, 1/20),
 		transform.rotateX(-rotX),
 		transform.rotateY(-rotY),
 		transform.translate(-x, -y, -z)
@@ -79,29 +74,31 @@ while true do
 
 	graphics.clear()
 
-	-- graphics.addLine({a[1], a[2]}, {b[1], b[2]}, colours[tri[4]])
+	draw.point(mvp, {0, 0, 0, 1}, rgb(255, 0, 0))
 
-	local p = project(matrix.multiply1(mvp, {0, 0, 0, 1}))
-	graphics.addBox(p[1] - 50, p[2] - 50, 100, 50, rgb(20, 20, 20), 0.7)
-	graphics.addPoint({p[1], p[2]}, rgb(255, 0, 0)).setSize(10)
+	draw.triangleOutline(
+		mvp,
+		{ 0, 0, 0, 1 },
+		{ 0, 0, 3, 1 },
+		{ 3, 0, 0, 1 },
+		rgb(0, 0, 255)
+	)
 
-	textutils.serialize(pData.living.lookingAt)
 	graphics.addText(5, 5, (textutils.serialize(pData.living.lookingAt):gsub("%s+", " ")))
 	graphics.addText(5, 15, (textutils.serialize(pData.position):gsub("%s+", " ")))
 	graphics.addText(5, 25, (textutils.serialize({yaw = pData.living.yaw, pitch = pData.living.pitch}):gsub("%s+", " ")))
+
 	graphics.sync()
 
-	--[[
-	local id = os.startTimer(0)
+	os.queueEvent("junk")
 	while true do
-		local e, x = os.pullEvent()
-		if e == "timer" and x == id then
+		local e, arg = os.pullEvent()
+		if e == "junk" then
 			break
-		elseif e == "key" and x == keys.enter then
+		elseif e == "key" and arg == keys.enter then
 			graphics.clear()
 			graphics.sync()
 			return
 		end
 	end
-	]]
 end
