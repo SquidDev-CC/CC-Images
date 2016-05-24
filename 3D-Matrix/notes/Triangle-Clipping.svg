@@ -1,0 +1,36 @@
+<svg width="580" height="400" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_20" height="87.257239" width="123.04251" y="24.260001" x="42.934561" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_23" d="m68.425439,75.241759l29.126192,-25.24042l16.667113,28.922343l-45.793305,-3.681923z" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <rect id="svg_24" height="87.257239" width="123.04251" y="24.260001" x="212.073492" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_26" d="m190.39053,51.13033l-2.912629,38.631817l17.043446,-11.741041l-14.130817,-26.890776z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_27" y="98.094491" x="50.255533" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Trivial Case: All drawn</text>
+  <text style="cursor: move;" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_28" y="99.609464" x="220.689981" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Trivial Case: None drawn</text>
+  <rect id="svg_32" height="87.257239" width="123.04251" y="24.26" x="371.687526" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_33" d="m438.846091,57.947708l-79.040018,-14.013493l0.378743,39.76804l78.661275,-25.754546z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_37" d="m437.129849,57.630977" opacity="0.5" fill-opacity="null" stroke-width="1.5" stroke="#ff0000" fill="none"/>
+  <path stroke="#ff0000" id="svg_36" d="m371.755665,80.18223l-0.229469,-34.005431l67.167332,11.659849l-66.937863,22.345582z" fill-opacity="null" stroke-width="1.5" fill="none"/>
+  <text style="cursor: move;" xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_38" y="99.30559" x="383.680746" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Clipping: 3 points</text>
+  <rect id="svg_39" height="87.257239" width="123.04251" y="133.287832" x="42.934558" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_40" d="m33.33335,153.819506l62.847251,21.527799l-29.513903,18.750009l-33.333348,-40.277808z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_41" y="210.763979" x="54.513916" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Clipping: 4 points</text>
+  <rect id="svg_44" height="87.257239" width="123.04251" y="133.287826" x="212.073489" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path id="svg_45" d="m198.922968,122.183871l106.168922,36.363671l-61.363687,36.038991l-44.805235,-72.402662z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <path stroke="#ff0000" id="svg_46" d="m42.891196,165.232116l0.000001,-8.151996l53.377699,18.211518c-9.611028,6.130592 -20.137123,12.488975 -29.633768,18.847357l-23.743932,-28.906879z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <path stroke="#ff0000" id="svg_47" d="m212.234667,144.05103l0.000003,-10.634413l19.417053,-0.176762l73.605087,25.210801l-61.428291,35.925096l-31.593852,-50.324722z" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_49" y="209.80244" x="218.93701" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Clipping: 5 points</text>
+  <rect id="svg_50" height="87.257239" width="123.04251" y="133.287823" x="371.687518" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_53" y="214.688456" x="379.84978" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#000" fill="#000000">Clipping: lots</text>
+  <path stroke="#000000" id="svg_54" d="m364.496744,176.348786l57.654976,-52.243999l99.023244,115.309962l-156.67822,-63.065963z" fill-opacity="null" stroke-width="1.5" fill="none"/>
+  <path id="svg_55" d="m371.695755,169.825436l40.149632,-36.408977l18.329177,0l64.46384,74.937656l0.249377,12.344139l-20.822943,-0.124688c-33.915212,-14.00665 -68.204489,-27.639235 -102.369077,-41.396509l-0.000006,-9.351621z" fill-opacity="null" stroke-width="1.5" stroke="#ff0000" fill="none"/>
+ </g>
+</svg>

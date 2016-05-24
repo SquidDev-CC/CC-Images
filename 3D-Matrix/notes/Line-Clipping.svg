@@ -1,0 +1,27 @@
+<svg width="580" height="400" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <rect stroke="#000" id="svg_1" height="134.000001" width="171.999995" y="34.689202" x="36.459461" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_2" height="134.000001" width="171.999995" y="34.689205" x="288.351364" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_3" height="134.000001" width="171.999995" y="201.44596" x="36.459459" stroke-width="1.5" fill="none"/>
+  <rect stroke="#000" id="svg_4" height="134.000001" width="171.999995" y="201.44596" x="288.351334" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_7" y2="117.317154" x2="167.561101" y1="67.073303" x1="59.26853" stroke-width="1.5" stroke="#ff0000" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_10" y2="131.463481" x2="279.268304" y1="60.244042" x1="260.243933" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke="#000000" stroke-linecap="null" stroke-linejoin="null" id="svg_11" y2="248.048727" x2="67.0734" y1="310.487688" x1="21.707593" stroke-width="1.5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_12" y2="301.219405" x2="504.146122" y1="227.073139" x1="270.975629" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <line stroke="#ff0000" stroke-linecap="null" stroke-linejoin="null" id="svg_14" y2="287.076043" x2="459.628018" y1="232.505512" x1="288.357231" fill-opacity="null" stroke-width="1.5" fill="none"/>
+  <line stroke="#ff0000" stroke-linecap="null" stroke-linejoin="null" id="svg_15" y2="248.154746" x2="67.050159" y1="289.629077" x1="36.866062" fill-opacity="null" stroke-width="1.5" fill="none"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_16" y="149.503558" x="75.57656" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#ff0000" fill="#000000">Trivial Case: All drawn</text>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_17" y="149.513349" x="322.285575" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#ff0000" fill="#000000">Trivial Case: None drawn</text>
+  <text xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_18" y="310.686759" x="57.154383" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#ff0000" fill="#000000">Clip: Interpolate between points</text>
+  <text transform="matrix(1,0,0,1,0,0) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" id="svg_19" y="310.538221" x="309.608367" fill-opacity="null" stroke-opacity="null" stroke-width="0" stroke="#ff0000" fill="#000000">Clip: Interpolate between points</text>
+ </g>
+</svg>
