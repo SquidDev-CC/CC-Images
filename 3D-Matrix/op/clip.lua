@@ -55,17 +55,17 @@ local function transform(vertex, matrix)
 	return trans, clip, projected
 end
 
---- Interpolate between to points
+--- Interpolate between two points
 -- @tpram matrix ver1 The first vertex
 -- @tparam matrix ver2
 local function interpolate(ver_1, ver_2, t)
-	local x, y, z, w = ver_1[1], ver_1[2], ver_1[3], ver_1[4]
-	local newW = w + (ver_2[4] - w) * t
+	local it = 1 - t
+	local newW = ver_1[4] * it + ver_2[4] * t
 	local inv = 1 / newW
 	return {
-		(x + (ver_2[1] - x) * t) * inv,
-		(y + (ver_2[2] - y) * t) * inv,
-		(z + (ver_2[3] - z) * t) * inv,
+		(ver_1[1] * it + ver_2[1] * t) * inv,
+		(ver_1[2] * it + ver_2[2] * t) * inv,
+		(ver_1[3] * it + ver_2[3] * t) * inv,
 		newW
 	}
 end
@@ -175,8 +175,77 @@ local function lineComplete(matrix, vertex_1, vertex_2, drawLine, ...)
 	return line(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2, drawLine, ...)
 end
 
+local function rgbD(r, g, b)
+	return math.floor(r * 255) * 256^2 +math.floor(g * 255) * 256 + math.floor(b * 255)
+end
+
+local function hsv(h, s, v)
+	if s <= 0.0 then
+		return rgbD(v, v, v)
+	end
+
+	local hh = h * 360;
+	if hh >= 360.0 then hh = 0.0 end
+	hh = hh / 60.0;
+	local i = hh;
+	local ff = hh % 1;
+
+	local p = v * (1.0 - s);
+	local q = v * (1.0 - (s * ff));
+	local t = v * (1.0 - (s * (1.0 - ff)));
+
+	if i < 1 then
+		return rgbD(v, t, p)
+	elseif i < 2 then
+		return rgbD(q, v, p)
+	elseif i < 3 then
+		return rgbD(p, v, t)
+	elseif i < 4 then
+		return rgbD(p, q, v)
+	elseif i < 5 then
+		return rgbD(t, p, v)
+	else
+		return rgbD(v, p, q)
+	end
+end
+
+local function rneq(a, b)
+	local delta = a - b
+	return delta < -0.00001 or delta > 0.00001
+end
+
+local function req(a, b)
+	local delta = a - b
+	return delta >= -0.00001 and delta <= 0.00001
+end
+
+--- Shall we just ignore this
+-- This uses the coordinate with the highest magnitude
+-- This will probably break at times.
+local function addCorner(proj_1, proj_2, out, n)
+	if not proj_1 or not proj_2 then return n end
+	local x1, y1 = proj_1[1], proj_1[2]
+	local x2, y2 = proj_2[1], proj_2[2]
+
+	if rneq(x1, x2) and rneq(y1, y2) then
+		local mx1 = x1 if mx1 < 0 then mx1 = -mx1 end
+		local mx2 = x2 if mx2 < 0 then mx2 = -mx2 end
+
+		local mx = x1 if mx2 > mx1 then mx = x2 end
+
+		local my1 = y1 if my1 < 0 then my1 = -my1 end
+		local my2 = y2 if my2 < 0 then my2 = -my2 end
+
+		local my = y1 if my2 > my1 then my = y2 end
+
+		n = n + 1
+		out[n] = { mx, my }
+	end
+	return n
+end
+
 local function triangle(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2, trans_3, clip_3, proj_3, drawTriangle, ...)
-	if clip_1[1] and clip_2[1] and clip_3[1] then drawTriangle(proj_1, proj_2, proj_3, ...) end
+	if clip_1[1] and clip_2[1] and clip_3[1] then drawTriangle({proj_1, proj_2, proj_3}, ...) end
 
 	local c1_x, c1_y, c1_z = clip_1[2], clip_1[3], clip_1[4]
 	local c2_x, c2_y, c2_z = clip_2[2], clip_2[3], clip_2[4]
@@ -188,13 +257,52 @@ local function triangle(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2, trans_
 		(c1_z ~= 0 and c1_z == c2_z and c1_z == c3_z)
 	then return end
 
+	local proj_1a, proj_1b = trimLine(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2)
+	local proj_2a, proj_2b = trimLine(trans_2, clip_2, proj_2, trans_3, clip_3, proj_3)
+	local proj_3a, proj_3b = trimLine(trans_3, clip_3, proj_3, trans_1, clip_1, proj_1)
+
+	local points, n = {}, 0
+	if proj_1a then
+		points[n + 1] = proj_1a
+		points[n + 2] = proj_1b
+		n = n + 2
+	end
+
+	if proj_2a then
+		local previous = points[n]
+		-- We can use reference identity as it will be the same if not clipped
+		-- and will be different anyway if clipped.
+		if previous ~= proj_2a then
+			n = addCorner(previous, proj_2a, points, n)
+			n = n + 1
+			points[n] = proj_2a
+		end
+
+		n = n + 1
+		points[n] = proj_2b
+	end
+
+	if proj_3a then
+		local previous = points[n]
+		if previous ~= proj_3a then
+			n = addCorner(previous, proj_3a, points, n)
+			n = n + 1
+			points[n] = proj_3a
+		end
+
+		n = n + 1
+		points[n] = proj_3b
+	end
+
+	n = addCorner(points[1], points[n], points, n)
+	drawTriangle(points, ...)
 end
 
-local function triangleComplete(matrix, vertex_1, vertex_2, vertex_3, uniform_1)
+local function triangleComplete(matrix, vertex_1, vertex_2, vertex_3, drawTriangle, ...)
 	local trans_1, clip_1, proj_1 = transform(vertex_1, matrix)
 	local trans_2, clip_2, proj_2 = transform(vertex_2, matrix)
 	local trans_3, clip_3, proj_3 = transform(vertex_3, matrix)
-	return triangle(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2, trans_3, clip_3, proj_3, uniform_1)
+	return triangle(trans_1, clip_1, proj_1, trans_2, clip_2, proj_2, trans_3, clip_3, proj_3, drawTriangle, ...)
 end
 
 return {

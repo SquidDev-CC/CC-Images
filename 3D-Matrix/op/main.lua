@@ -86,18 +86,21 @@ local function hsv(h, s, v)
 end
 
 local function drawPoint(a, ...) graphics.addPoint(normalise(a), ...).setSize(5) end
-local function drawLine(a, b, color, opacity, width)
-	local line = graphics.addLine(normalise(a), normalise(b), color, opacity or 1)
-	if width then
-		line.setWidth(width)
-	end
-end
-local function drawTriangle(a, b, c, ...) graphics.addTriangle(normalise(a), normalise(b), normalise(c), ...) end
 
-local function triangleOutline(m, a, b, c, ...)
-	clip.line(m, a, b, drawLine, ...)
-	clip.line(m, a, c, drawLine, ...)
-	clip.line(m, b, c, drawLine, ...)
+local function drawLine(a, b, colour, opacity, width)
+	local line = graphics.addLine(normalise(a), normalise(b), colour, opacity)
+	if width then line.setWidth(width) end
+end
+
+local function drawTriangle(points, colour, opacity)
+	for i = 1, #points do points[i] = normalise(points[i]) end
+	graphics.addPolygon(colour, opacity, unpack(points))
+end
+
+local function drawTriangleOutline(points, colour, opacity, width)
+	for i = 1, #points do points[i] = normalise(points[i]) end
+	local line = graphics.addLineList(colour, opacity, unpack(points))
+	if width then line.setWidth(width) end
 end
 
 local rotX, rotY = 0, 0
@@ -106,6 +109,71 @@ local x, y, z = 0, 0, 8
 local player = sensor.getPlayerByName("ThatVeggie") or error("Cannot find")
 
 local initialPosition = { x = 0.5, y = 0.5, z = 0.5 }
+
+
+local verticies = {
+	{  3,  3, -3, 1 },
+	{  3, -3, -3, 1 },
+	{ -3, -3, -3, 1 },
+	{ -3,  3, -3, 1 },
+	{  3,  3,  3, 1 },
+	{  3, -3,  3, 1 },
+	{ -3, -3,  3, 1 },
+	{ -3,  3,  3, 1 },
+}
+
+for i = 1, #verticies do
+	verticies[i][2] = verticies[i][2] - 5
+end
+
+local colours = {
+	{ 255, 0,   0,   255 },
+	{ 0,   255, 0,   255 },
+	{ 0,   0,   255, 255 },
+	{ 0,   255, 255, 255 },
+	{ 255, 255, 0,   255 },
+	{ 255, 0,   255, 255 },
+	{ 255, 128, 0,   255 },
+	{ 128, 255, 0,   255 },
+}
+
+for i = 1, #colours do colours[i] = rgb(unpack(colours[i])) end
+
+local indexes = {
+	{1,2,3, 1},
+	{1,3,4, 1},
+	{7,6,8, 2},
+	{8,6,5, 2},
+
+	{3,7,4, 3}, -- Left
+	{4,7,8, 3},
+	{5,6,2, 4},
+	{2,1,5, 4},
+
+	{5,1,4, 5}, -- Top
+	{4,8,5, 5},
+	{2,6,3, 6},
+	{6,7,3, 6},
+}
+
+for i = 1, #indexes do
+	local tri = indexes[i]
+
+	local a = verticies[tri[1]]
+	local b = verticies[tri[2]]
+	local c = verticies[tri[3]]
+
+	tri[5] = {
+		(a[1] + b[1] + c[1]) / 3,
+		(a[2] + b[2] + c[2]) / 3,
+		(a[3] + b[3] + c[3]) / 3,
+	}
+end
+
+
+local function sortDistance(a, b)
+	return a[6] >= b[6]
+end
 
 local counter = 0
 while true do
@@ -128,32 +196,51 @@ while true do
 	local mvp = compose(projection, view)
 
 	graphics.clear()
+	-- byzanz-record --duration=15 --x=200 --y=300 --width=700 --height=400 out.gif
+	--
+	-- clip.line(
+	-- 	mvp,
+	-- 	{ -2, 0, 0, 1 },
+	-- 	{ -2, 0, 4, 1 },
+	-- 	drawLine,
+	-- 	hsv(counter, 0.6, 1), 0.25, 3
+	-- )
+	--
+	-- clip.line(
+	-- 	mvp,
+	-- 	{ -2, 0, 0, 1 },
+	-- 	{ -2, 0, 4, 1 },
+	-- 	drawLine,
+	-- 	hsv(counter, 0.6, 1), 1, 1
+	-- )
 
-	clip.point(mvp, {0, 0, 0, 1}, drawPoint, rgb(255, 0, 0))
-
-	clip.line(
-		mvp,
-		{ -2, 0, 0, 1 },
-		{ -2, 0, 4, 1 },
-		drawLine,
-		hsv(counter, 0.6, 1), 0.25, 3
-	)
-
-	clip.line(
-		mvp,
-		{ -2, 0, 0, 1 },
-		{ -2, 0, 4, 1 },
-		drawLine,
-		hsv(counter, 0.6, 1), 1, 1
-	)
-
-	triangleOutline(
+	clip.triangle(
 		mvp,
 		{ 0, 0, 0, 1 },
 		{ 0, 0, 3, 1 },
 		{ 3, 0, 0, 1 },
-		rgb(0, 0, 255)
+		drawTriangle,
+		hsv(counter, 0.6, 1), 0.5
 	)
+
+	for i = 1, #indexes do
+		local tri = indexes[i]
+		local mid = tri[5]
+		tri[6] = (mid[1] - x)^2 + (mid[2] - y)^2 + (mid[3] - z)^2
+	end
+	table.sort(indexes, sortDistance)
+	for i = 1, #indexes do
+		local tri = indexes[i]
+
+		clip.triangle(
+			mvp,
+			verticies[tri[1]],
+			verticies[tri[2]],
+			verticies[tri[3]],
+			drawTriangle,
+			colours[tri[4]], 0.6
+		)
+	end
 
 	graphics.addText(5, 5, (textutils.serialize(pData.living.lookingAt):gsub("%s+", " ")))
 	graphics.addText(5, 15, (textutils.serialize(pData.position):gsub("%s+", " ")))
