@@ -80,7 +80,19 @@ local function multiply1(l, r)
 	}
 end
 
+
+local select = select
+local function compose(...)
+	local result, items = ..., {select(2, ...)}
+	for i = 1, #items do
+		result = multiply4(result, items[i])
+	end
+
+	return result
+end
+
 return {
 	multiply1 = multiply1,
 	multiply4 = multiply4,
+	compose = compose,
 }
