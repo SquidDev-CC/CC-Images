@@ -70,9 +70,5 @@ while true do
 		graphics.hsv(counter, 0.6, 1), 0.5
 	)
 
-	glasses.addText(5, 5, (textutils.serialize(pData.living.lookingAt):gsub("%s+", " ")))
-	glasses.addText(5, 15, (textutils.serialize(pData.position):gsub("%s+", " ")))
-	glasses.addText(5, 25, (textutils.serialize({yaw = pData.living.yaw, pitch = pData.living.pitch}):gsub("%s+", " ")))
-
 	glasses.sync()
 end
