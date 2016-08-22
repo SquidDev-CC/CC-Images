@@ -5,4 +5,4 @@ CC-Images is an image parsing libary - currently supporting Monochrome, 4, 8 and
 
 Contributing
 ------------
-I'd love you to contribute, send me a pull request. CC-Images is combined using [Howl](/SquidDev-CC/Howl) so you'll need to download that too.
+I'd love you to contribute, send me a pull request. CC-Images is combined using [Howl](https://github.com/SquidDev-CC/Howl) so you'll need to download that too.
