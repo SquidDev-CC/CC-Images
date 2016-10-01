@@ -74,6 +74,9 @@ xpcall(function()
 		glasses.clear()
 		run(mvp, pData, x, y, z)
 		glasses.sync()
+
+		os.queueEvent("wait")
+		os.pullEvent("wait")
 	end
 end, function(err)
 	printError(err)
@@ -83,3 +86,6 @@ end, function(err)
 		print("  " .. msg)
 	end
 end)
+
+glasses.clear()
+glasses.sync()
