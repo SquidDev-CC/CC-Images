@@ -400,6 +400,7 @@ local function polygonComplete(matrix, vertex, drawPolygon, ...)
 end
 
 return {
+	transform = transform,
 	point = pointComplete,
 	line = lineComplete,
 	polygon = polygonComplete,
